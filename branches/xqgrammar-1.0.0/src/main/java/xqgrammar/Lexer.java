@@ -156,7 +156,7 @@ public abstract class Lexer
                     Integer.parseInt(ref.substring(start + 3, length - 1), 16);
             }
             else {
-                value = Integer.parseInt(ref.substring(start + 3, length - 1));
+                value = Integer.parseInt(ref.substring(start + 2, length - 1));
             }
         }
         catch (RuntimeException e) {

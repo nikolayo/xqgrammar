@@ -92,8 +92,8 @@ PredefinedEntityRef
     ;
 CharRef
     : { !inTag || inAposAttr || inQuotAttr }? =>
-      '&#' Digits ';' | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';'
-      {checkCharRef();}
+        '&#' Digits ';' {checkCharRef();} 
+      | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';'  {checkCharRef();}
     ;
 fragment
 Digits
