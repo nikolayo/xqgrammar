@@ -48,15 +48,15 @@ Colon        : ':';
 
 DirCommentConstructor                                            // ws:explicit
     : { !inTag }? => 
-      '<!--' (options {greedy=false;} : .* ) '-->'
+      '<!--' (options {greedy=false;} : .)*  '-->'
     ;
 DirPIConstructor                                                 // ws:explicit 
     : { !inTag }? => 
-      '<?' VS? VNCName (VS (options {greedy=false;} : .*))? '?>' 
+      '<?' VS? VNCName (VS (options {greedy=false;} : .)*)? '?>' 
     ;
 CDataSection    
     : { !inTag }? => 
-      '<![CDATA[' (options {greedy=false;} : .*) ']]>'           // ws:explicit
+      '<![CDATA[' (options {greedy=false;} : .)* ']]>'           // ws:explicit
     ;
 
 ElementContentChar   // Char - [{}<&]       //  "   &   '   <  {  }

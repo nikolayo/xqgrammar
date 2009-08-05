@@ -1066,15 +1066,15 @@ TRY                     : 'try';
 // end of XQuery 1.1 tokens
 
 DirCommentConstructor                                            // ws:explicit
-    : '<!--' (options {greedy=false;} : .* ) '-->'   
+    : '<!--' (options {greedy=false;} : . )* '-->'   
     ;
 DirPIConstructor    
-    : '<?' VS? NCName (VS (options {greedy=false;} : .*))? '?>'  // ws:explicit
+    : '<?' VS? NCName (VS (options {greedy=false;} : . )*)? '?>' // ws:explicit
     ;
 /*
 // Only allowed within direct XML and hence - parsed by XMLexer
 CDataSection
-    : '<![CDATA[' (options {greedy=false;} : .*) ']]>'           // ws:explicit  
+    : '<![CDATA[' (options {greedy=false;} : . )* ']]>'          // ws:explicit  
     ;
 */
 Pragma
