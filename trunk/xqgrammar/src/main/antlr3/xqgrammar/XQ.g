@@ -82,8 +82,8 @@ module
     : versionDecl? (libraryModule | mainModule)
     ;    
 versionDecl
-    : // XQUERY VERSION StringLiteral (ENCODING StringLiteral)? ';'
-      XQUERY  ((ENCODING StringLiteral {checkEncoding();}) |      // XQuery 1.1
+    : //XQUERY VERSION StringLiteral (ENCODING StringLiteral)? ';' //XQuery 1.0
+      XQUERY  ((ENCODING StringLiteral {checkEncoding();}) |       //XQuery 1.1
       (VERSION StringLiteral (ENCODING StringLiteral {checkEncoding();})?)) ';'
     ;
 mainModule
@@ -96,9 +96,10 @@ moduleDecl
     : MODULE NAMESPACE ncName SymEq uriLiteral ';'
     ;
 prolog
-    : //((defaultNamespaceDecl | setter | namespaceDecl | importDecl) ';')* 
+    :                                                             // XQuery 1.0
+      //((defaultNamespaceDecl | setter | namespaceDecl | importDecl) ';')* 
       //((varDecl | functionDecl | optionDecl) ';')*
-      // XQuery 1.1
+                                                                  // XQuery 1.1
       ((defaultNamespaceDecl | setter | namespaceDecl | importDecl) ';')* 
       ((varDecl | functionDecl | optionDecl | contextItemDecl) ';')*
     ;
@@ -180,9 +181,9 @@ contextItemDecl                                                   // XQuery 1.1
       ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
     ;
 functionDecl
-    : //  DECLARE FUNCTION fqName '(' paramList? ')'
+    : //  DECLARE FUNCTION fqName '(' paramList? ')'              // XQuery 1.0
       /*
-          DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'  // ext:update
+          DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'   // ext:update
               (AS sequenceType)? (enclosedExpr | EXTERNAL)
       */
            DECLARE (DETERMINISTIC | NONDETERMINISTIC)?            // Xquery 1.1
@@ -337,7 +338,8 @@ rangeExpr
     : additiveExpr ( TO additiveExpr )?
     ;
 additiveExpr
-    : multiplicativeExpr ( ('+' | '-') multiplicativeExpr )*;
+    : multiplicativeExpr ( ('+' | '-') multiplicativeExpr )*
+    ;
 multiplicativeExpr
     : unionExpr ( 
        (  '*' 
@@ -1053,7 +1055,7 @@ SEQUENTIAL              : 'sequential';
 RETURNING               : 'returning';
 SET                     : 'set';
 WHILE                   : 'while';
-// end of xq:scripting tokens
+// end of ext:scripting tokens
 // XQuery 1.1 tokens
 CATCH                   : 'catch';
 CONTEXT                 : 'context';
@@ -1070,7 +1072,7 @@ DirPIConstructor
     : '<?' VS? NCName (VS (options {greedy=false;} : .*))? '?>'  // ws:explicit
     ;
 /*
-// Only allowed within direct XML and hence - parsed by DirXmlLexer
+// Only allowed within direct XML and hence - parsed by XMLexer
 CDataSection
     : '<![CDATA[' (options {greedy=false;} : .*) ']]>'           // ws:explicit  
     ;
@@ -1128,8 +1130,8 @@ PredefinedEntityRef
     : '&' ('lt' | 'gt' | 'apos' | 'quot' | 'amp' ) ';'
     ;
 CharRef
-    : '&#' Digits ';' | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';'
-      {checkCharRef();}
+    : '&#'  Digits ';'                        {checkCharRef();}
+    | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';' {checkCharRef();}
     ;
 fragment
 Char
