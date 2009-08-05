@@ -31,7 +31,7 @@ import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.TokenStream;
 
 /**
- * Base class for generated XQuery parser. Provides hooks for controll of 
+ * Base class for generated XQuery parser. Provides hooks for control of 
  * error handling and some utilities for "add-on" parsing of details which 
  * can not or should better not be handled in the generated parser.
  */
@@ -58,8 +58,8 @@ public class Parser
     }
 
     /**
-     * Set a flag which determines behavior error behavior. If the flag is
-     * true then a runtime exception is thrown upon errors. Default value
+     * Set a flag which determines error handling behavior. If the flag is
+     * true then a runtime exception is thrown upon error. Default value
      * is "true"
      * 
      * @param breakOnError the value to be set
@@ -215,8 +215,11 @@ public class Parser
     }
 
     /**
-     * Check that current token is preceded by blank space and throw error
-     * if it is not.
+     * Check that current token, if preceded by specified other token, is 
+     * separated from it by blank space and throw error if it is not.
+     * 
+     * @param previous the kind of preceding token for which the check is
+     *                 to be made
      */
     protected void needSpaceBetween(int previous)
         throws RecognitionException
@@ -229,7 +232,7 @@ public class Parser
     }
 
     /**
-     * Push direct xml element on stack, so thatslater its name can be compared
+     * Push direct xml element on stack, so that later its name can be compared
      * to name of the closing tag (if any). 
      */
     protected void pushElemName()
@@ -282,8 +285,8 @@ public class Parser
     /**
      * Set values of some token codes needed by "add-on" parsing methods.
      * 
-     * @param NCName
-     * @param Colon
+     * @param NCName code of the NCName token
+     * @param Colon  code of the Colon token
      * @return
      */
     protected boolean setTokenCodes(int NCName, int Colon)
@@ -325,8 +328,6 @@ public class Parser
     protected String parseCData()
         throws RecognitionException
     {
-        // Result is not used in pure parser but 
-        // will be used in a language processor.
         String content = input.get(input.index()).getText().substring(9);
         content = content.substring(0, content.length() - 3);
 
@@ -372,7 +373,8 @@ public class Parser
      * the generated parser.
      * 
      * @return a pair where the first element is pair of prefix and name 
-     *         constitutin QName and second element is pragma text content.
+     *         constituting a QName and second element is pragma text content.
+     *
      * @throws RecognitionException
      */
     protected Pair<Pair<String, String>, String> parsePragma()

@@ -28,7 +28,7 @@ import org.antlr.runtime.CommonToken;
  * so it is done in part by "add-on" procedures but we need to 
  * keep around appropriate information. This custom token class 
  * stores it. It could as well store complete content of preceding 
- * white spaces  * (including comments) if the need be (to recover 
+ * white spaces (including comments) if the need be (to recover 
  * full text of query).
  */
 public class XQToken
