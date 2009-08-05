@@ -57,9 +57,9 @@ public abstract class Lexer
     }
 
     /**
-     * Set a flag which determines behavior error behavior. If the flag is
-     * true then a runtime exception is thrown upon errors. Default value
-     * is "true"
+     * Set a flag which determines error handling behavior. If the flag is
+     * true then a runtime exception is thrown upon error. Default value
+     * is "true".
      * 
      * @param breakOnError the value to be set
      */
