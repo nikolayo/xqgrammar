@@ -405,9 +405,9 @@ extensionExpr
 //  ;
 pathExpr                                              // xgs:leading-lone-slash
     : ('/'  relativePathExpr) => '/'  relativePathExpr
-    | ('//' relativePathExpr) => '//' relativePathExpr
-    | ('/'  '*') => '/' '*'
+    | ('/'        '*'       ) => '/' '*'
     | '/'
+    | '//' relativePathExpr
     | relativePathExpr
     ;
 relativePathExpr
