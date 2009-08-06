@@ -183,17 +183,17 @@ contextItemDecl                                                   // XQuery 1.1
       ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
     ;
 functionDecl
-    : //  DECLARE FUNCTION fqName '(' paramList? ')'              // XQuery 1.0
-      //  DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'   // ext:update
-      //      (AS sequenceType)? (enclosedExpr | EXTERNAL)
-           DECLARE (DETERMINISTIC | NONDETERMINISTIC)?            // Xquery 1.1
-              (SIMPLE? | UPDATING)                                // ext:update
-              FUNCTION fqName '(' paramList? ')' 
-              (AS sequenceType)? (enclosedExpr | EXTERNAL)
-         | DECLARE (DETERMINISTIC | NONDETERMINISTIC)?            // Xquery 1.1
-              SEQUENTIAL                                       // ext:sctipting
-              FUNCTION fqName '(' paramList? ')'
-              (AS sequenceType)? (block        | EXTERNAL)
+    : // DECLARE FUNCTION fqName '(' paramList? ')'               // XQuery 1.0
+      // DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'    // ext:update
+      //     (AS sequenceType)? (enclosedExpr | EXTERNAL)
+         DECLARE (DETERMINISTIC | NONDETERMINISTIC)?              // Xquery 1.1
+             (SIMPLE? | UPDATING)                                 // ext:update
+             FUNCTION fqName '(' paramList? ')'
+             (AS sequenceType)? (enclosedExpr | EXTERNAL)
+    |    DECLARE (DETERMINISTIC | NONDETERMINISTIC)?              // Xquery 1.1
+             SEQUENTIAL                                        // ext:sctipting
+             FUNCTION fqName '(' paramList? ')'
+             (AS sequenceType)? (block        | EXTERNAL)
     ;
 paramList
     : param (',' param)*
@@ -221,7 +221,7 @@ expr  // Some hand crafted  parsing since                      // ext:scripting
       }
     : exprSingle ((',' | ';' { seqStarted = true; }) exprSingle )* 
       (';' { seqEnded = true; })?
-    ;    
+    ;
 /*
 // W3C grammar:
 expr 
