@@ -69,9 +69,11 @@ tokens {
 @header {
     package xqgrammar;
 }
+
 @lexer::header {
     package xqgrammar;
 }
+
 @members {
     // small trick to pass token codes 
     // to super class at creation time
@@ -748,8 +750,8 @@ blockDecls                                                     // ext:scripting
     : (blockVarDecl ';')*
     ;
 blockVarDecl                                                   // ext:scripting
-   : DECLARE '$' varName typeDeclaration? (':=' exprSingle)? 
-        (',' '$' varName typeDeclaration? (':=' exprSingle)? )*
+    : DECLARE '$' varName typeDeclaration? (':=' exprSingle)? 
+         (',' '$' varName typeDeclaration? (':=' exprSingle)? )*
     ;
 blockBody                                                      // ext:scripting
     : expr
@@ -1047,7 +1049,7 @@ UPDATING                : 'updating';
 VALUE                   : 'value';
 WITH                    : 'with';
 // end of ext:update tokens
-// xq:scripting tokens
+// ext:scripting tokens
 BLOCK                   : 'block';
 CONSTANT                : 'constant';
 EXIT                    : 'exit';
@@ -1110,10 +1112,6 @@ DecimalLiteral
 DoubleLiteral
     : (('.' Digits) | (Digits ('.' '0'..'9'*)?)) ('e' | 'E') ('+'|'-')? Digits
     ;
-fragment
-Digits
-    : '0'..'9'+
-    ;
 StringLiteral
     : Quot (
           options {greedy=false;}:
@@ -1130,16 +1128,14 @@ PredefinedEntityRef
     : '&' ('lt' | 'gt' | 'apos' | 'quot' | 'amp' ) ';'
     ;
 CharRef
-    : '&#'  Digits ';'                        {checkCharRef();}
-    | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';' {checkCharRef();}
+    : '&#'  Digits    ';' {checkCharRef();}
+    | '&#x' HexDigits ';' {checkCharRef();}
     ;
-fragment
-Char
-    : '\u0009' | '\u000A' | '\u000D' | 
-      '\u0020'..'\uD7FF'  | '\uE000'..'\uFFFD' // | '\u10000'..'\u10FFFF'
-    ; 
 Comment
-    : '(:' (options {greedy=false;}: Comment |  . )* ':)' { $channel = HIDDEN; }
+    : '(:' (options {greedy=false;}: Comment | . )* ':)' { $channel = HIDDEN; }
+    ;
+NCName
+    : NCNameStartChar NCNameChar*
     ;
 S
     : ('\u0009' | '\u000A' | '\u000D' | '\u0020')+ { $channel = HIDDEN; }
@@ -1148,15 +1144,26 @@ fragment
 VS
     : ('\u0009' | '\u000A' | '\u000D' | '\u0020')+
     ;
-NCName
-    : NCNameStartChar NCNameChar*
+fragment
+Digits
+    : '0'..'9'+
     ;
+fragment
+HexDigits
+    : ('0'..'9' | 'a'..'f' | 'A'..'F')+
+    ;
+fragment
+Char
+    : '\u0009'           | '\u000A'           | '\u000D' 
+    | '\u0020'..'\uD7FF' | '\uE000'..'\uFFFD' // | '\u10000'..'\u10FFFF'
+    ; 
 fragment
 NCNameStartChar
     : Letter | '_'
     ;
 fragment
-NCNameChar  // NameChar - ':'  http://www.w3.org/TR/REC-xml-names/#NT-NCName
+NCNameChar
+    // NameChar - ':'  http://www.w3.org/TR/REC-xml-names/#NT-NCName
     : 'A'..'Z'           | 'a'..'z'           | '_' 
     | '\u00C0'..'\u00D6' | '\u00D8'..'\u00F6' | '\u00F8'..'\u02FF' 
     | '\u0370'..'\u037D' | '\u037F'..'\u1FFF' | '\u200C'..'\u200D' 
@@ -1167,7 +1174,8 @@ NCNameChar  // NameChar - ':'  http://www.w3.org/TR/REC-xml-names/#NT-NCName
     | '\u00B7'           | '\u0300'..'\u036F' | '\u203F'..'\u2040'
     ;
 fragment
-Letter // http://www.w3.org/TR/REC-xml/#NT-Letter
+Letter
+    // http://www.w3.org/TR/REC-xml/#NT-Letter
     : '\u0041'..'\u005A' | '\u0061'..'\u007A' | '\u00C0'..'\u00D6' 
     | '\u00D8'..'\u00F6' | '\u00F8'..'\u00FF' | '\u0100'..'\u0131'
     | '\u0134'..'\u013E' | '\u0141'..'\u0148' | '\u014A'..'\u017E'
