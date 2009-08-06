@@ -164,9 +164,9 @@ moduleImport
       (AT uriLiteral (',' uriLiteral)*)?
     ;
 varDecl
-    : //DECLARE VARIABLE '$' qName typeDeclaration?
+    : //DECLARE VARIABLE '$' qName typeDeclaration?               // XQuery 1.0
       DECLARE (VARIABLE | CONSTANT) '$' qName typeDeclaration? // ext:scripting
-      //((':=' exprSingle) | EXTERNAL)
+      //((':=' exprSingle) | EXTERNAL)                            // XQuery 1.0
       ((':=' varValue) | EXTERNAL (':=' varDefaultValue)?)        // XQuery 1.1
     ;
 varValue                                                          // XQuery 1.1
@@ -184,16 +184,15 @@ contextItemDecl                                                   // XQuery 1.1
     ;
 functionDecl
     : //  DECLARE FUNCTION fqName '(' paramList? ')'              // XQuery 1.0
-      /*
-          DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'   // ext:update
-              (AS sequenceType)? (enclosedExpr | EXTERNAL)
-      */
+      //  DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'   // ext:update
+      //      (AS sequenceType)? (enclosedExpr | EXTERNAL)
            DECLARE (DETERMINISTIC | NONDETERMINISTIC)?            // Xquery 1.1
-              (SIMPLE? | UPDATING)                             // ext:scripting
+              (SIMPLE? | UPDATING)                                // ext:update
               FUNCTION fqName '(' paramList? ')' 
               (AS sequenceType)? (enclosedExpr | EXTERNAL)
          | DECLARE (DETERMINISTIC | NONDETERMINISTIC)?            // Xquery 1.1
-              SEQUENTIAL             FUNCTION fqName '(' paramList? ')'
+              SEQUENTIAL                                       // ext:sctipting
+              FUNCTION fqName '(' paramList? ')'
               (AS sequenceType)? (block        | EXTERNAL)
     ;
 paramList
@@ -241,7 +240,6 @@ exprSingle
     | quantifiedExpr
     | typeswitchExpr
     | ifExpr
-    | tryCatchExpr                                                // XQuery 1.1
     | orExpr
     | insertExpr                                                  // ext:update 
     | deleteExpr                                                  // ext:update
@@ -252,6 +250,7 @@ exprSingle
     | assignmentExpr                                           // ext:scripting
     | exitExpr                                                 // ext:scripting
     | whileExpr                                                // ext:scripting
+    | tryCatchExpr                                                // XQuery 1.1
     ;
 flworExpr
     : (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
@@ -462,8 +461,8 @@ nameTest
     ;
 wildcard                                                         // ws:explicit
     : '*'
-    | ncName Colon '*'
-    | '*' Colon ncName
+    | ncName Colon {noSpaceBefore();} '*'    {noSpaceBefore();}
+    | '*'    Colon {noSpaceBefore();} ncName {noSpaceBefore();}
     ;
 filterExpr
     : primaryExpr predicateList
@@ -768,10 +767,10 @@ whileBody
 // End of W3C grammar.
 
 qName
-    : ncName  (Colon {noSpaceBefore();} ncName{noSpaceBefore();})?
+    : ncName  (Colon {noSpaceBefore();}  ncName {noSpaceBefore();})?
     ;
 fqName
-    : fncName (Colon {noSpaceBefore();}fncName{noSpaceBefore();})?
+    : fncName (Colon {noSpaceBefore();} fncName {noSpaceBefore();})?
     ;
 ncName
     : fncName
