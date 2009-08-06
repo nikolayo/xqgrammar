@@ -58,7 +58,6 @@ CDataSection
     : { !inTag }? => 
       '<![CDATA[' (options {greedy=false;} : .)* ']]>'           // ws:explicit
     ;
-
 ElementContentChar   // Char - [{}<&]       //  "   &   '   <  {  }
     : { !inTag }? =>                        // 22  26  27  3C 7B 7D
       (
@@ -80,24 +79,30 @@ AposAttrContentChar  // Char - ['{}<&]
         | '\u0020'..'\u0025' | '\u0028'..'\u003B'
       )+
     ;
-fragment 
-CommonContentChar
-    : '\u0009' | '\u000A'| '\u000D' 
-    | '\u003D'..'\u007A' | '\u007C'..'\u007C' 
-    | '\u007E'..'\uD7FF' | '\uE000'..'\uFFFD'
-    ;
 PredefinedEntityRef
     : { !inTag || inAposAttr || inQuotAttr }? =>
       '&' ('lt' | 'gt' | 'apos' | 'quot' | 'amp' ) ';'
     ;
 CharRef
     : { !inTag || inAposAttr || inQuotAttr }? =>
-        '&#' Digits ';' {checkCharRef();} 
-      | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';'  {checkCharRef();}
+        '&#'  Digits    ';' {checkCharRef();} 
+    | { !inTag || inAposAttr || inQuotAttr }? =>
+        '&#x' HexDigits ';' {checkCharRef();}
+    ;
+
+fragment 
+CommonContentChar
+    : '\u0009' | '\u000A'| '\u000D' 
+    | '\u003D'..'\u007A' | '\u007C'..'\u007C' 
+    | '\u007E'..'\uD7FF' | '\uE000'..'\uFFFD'
     ;
 fragment
 Digits
     : '0'..'9'+
+    ;
+fragment
+HexDigits
+    : ('0'..'9'|'a'..'f'|'A'..'F')+
     ;
 S
     : { inTag }? => ('\u0009' | '\u000A'| '\u000D' | '\u0020')+
@@ -118,7 +123,8 @@ NCNameStartChar
     : Letter | '_'
     ;
 fragment
-NCNameChar  // NameChar - ':'  http://www.w3.org/TR/REC-xml-names/#NT-NCName
+NCNameChar  
+    // NameChar - ':'  http://www.w3.org/TR/REC-xml-names/#NT-NCName
     : 'A'..'Z'           | 'a'..'z'           | '_' 
     | '\u00C0'..'\u00D6' | '\u00D8'..'\u00F6' | '\u00F8'..'\u02FF' 
     | '\u0370'..'\u037D' | '\u037F'..'\u1FFF' | '\u200C'..'\u200D' 
@@ -129,7 +135,8 @@ NCNameChar  // NameChar - ':'  http://www.w3.org/TR/REC-xml-names/#NT-NCName
     | '\u00B7'           | '\u0300'..'\u036F' | '\u203F'..'\u2040'
     ;
 fragment
-Letter // http://www.w3.org/TR/REC-xml/#NT-Letter
+Letter 
+    // http://www.w3.org/TR/REC-xml/#NT-Letter
     : '\u0041'..'\u005A' | '\u0061'..'\u007A' | '\u00C0'..'\u00D6' 
     | '\u00D8'..'\u00F6' | '\u00F8'..'\u00FF' | '\u0100'..'\u0131'
     | '\u0134'..'\u013E' | '\u0141'..'\u0148' | '\u014A'..'\u017E'

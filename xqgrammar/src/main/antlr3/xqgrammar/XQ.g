@@ -1110,10 +1110,6 @@ DecimalLiteral
 DoubleLiteral
     : (('.' Digits) | (Digits ('.' '0'..'9'*)?)) ('e' | 'E') ('+'|'-')? Digits
     ;
-fragment
-Digits
-    : '0'..'9'+
-    ;
 StringLiteral
     : Quot (
           options {greedy=false;}:
@@ -1130,16 +1126,14 @@ PredefinedEntityRef
     : '&' ('lt' | 'gt' | 'apos' | 'quot' | 'amp' ) ';'
     ;
 CharRef
-    : '&#'  Digits ';'                        {checkCharRef();}
-    | '&#x' ('0'..'9'|'a'..'f'|'A'..'F')+ ';' {checkCharRef();}
+    : '&#'  Digits    ';' {checkCharRef();}
+    | '&#x' HexDigits ';' {checkCharRef();}
     ;
-fragment
-Char
-    : '\u0009' | '\u000A' | '\u000D' | 
-      '\u0020'..'\uD7FF'  | '\uE000'..'\uFFFD' // | '\u10000'..'\u10FFFF'
-    ; 
 Comment
-    : '(:' (options {greedy=false;}: Comment |  . )* ':)' { $channel = HIDDEN; }
+    : '(:' (options {greedy=false;}: Comment | . )* ':)' { $channel = HIDDEN; }
+    ;
+NCName
+    : NCNameStartChar NCNameChar*
     ;
 S
     : ('\u0009' | '\u000A' | '\u000D' | '\u0020')+ { $channel = HIDDEN; }
@@ -1148,9 +1142,19 @@ fragment
 VS
     : ('\u0009' | '\u000A' | '\u000D' | '\u0020')+
     ;
-NCName
-    : NCNameStartChar NCNameChar*
+fragment
+Digits
+    : '0'..'9'+
     ;
+fragment
+HexDigits
+    : ('0'..'9' | 'a'..'f' | 'A'..'F')+
+    ;
+fragment
+Char
+    : '\u0009'           | '\u000A'           | '\u000D' 
+    | '\u0020'..'\uD7FF' | '\uE000'..'\uFFFD' // | '\u10000'..'\u10FFFF'
+    ; 
 fragment
 NCNameStartChar
     : Letter | '_'
