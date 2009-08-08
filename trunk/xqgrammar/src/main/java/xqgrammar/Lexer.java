@@ -26,7 +26,7 @@ import org.antlr.runtime.Token;
 /**
  * Base class for generated lexers. Has 3 roles:
  * <ol>
- * <li> Produce tokens of custom type.
+ * <li> Produce tokens of custom type.</li>
  * <li> Provide control over behavior upon errors.</li>
  * <li> Check validity of character references</li>
  * </ol>
