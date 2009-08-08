@@ -46,6 +46,17 @@ I. XQTS : 100% pass with the following remarks:
 
 II.XQUTS : 100% pass.
 
+III. XQFTTS : 100 % pass with the following remarks:
+
+1. There are 2 tests which are expected to generate runtime error according
+   to the catalog but are clearly marked as containing syntax errors in 
+   test files and contain obvious syntax errors. The tests are :
+   
+   Queries/XQuery/Expressions/Operators/CompExpr/FTContainsExpr/FTSelection
+       /FTOperators/FTOr/FTOr-bad2.xq
+   Queries/XQuery/Expressions/Operators/CompExpr/FTContainsExpr/FTSelection
+       /FTOperators/FTAnd/FTAnd-bad2.x
+
 =============================================================================*/
 
 package xqgrammar;
@@ -72,6 +83,7 @@ public class TestSuiteRunner
     private static String XQTS_BASE  = "/home/nikolay/Work/XQTS";
     private static String XQUTS_BASE =
                                          "/home/nikolay/Work/xquery-update-10-test-suite";
+    private static String XQFTTS_BASE = "/home/nikolay/Work/XQFTTS";
     private static String XQGTS_BASE = "/home/nikolay/Work/XQGTS";
 
     // Test suites are not part of the project, 
@@ -80,7 +92,8 @@ public class TestSuiteRunner
     // See
     // http://www.w3.org/XML/Query/test-suite/
     // http://dev.w3.org/2007/xquery-update-10-test-suite/
-    // 
+    // http://dev.w3.org/2007/xpath-full-text-10-test-suite/
+
     @Ignore
     @Test
     public void runTestSuites()
@@ -88,6 +101,7 @@ public class TestSuiteRunner
     {
         assertTrue(runTests(XQTS_BASE));
         assertTrue(runTests(XQUTS_BASE));
+        assertTrue(runTests(XQFTTS_BASE));
         assertTrue(runTests(XQGTS_BASE));
     }
 
