@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.0.0
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.0
             
             Supported W3C grammars:
             
@@ -35,7 +35,17 @@
                ("exit returning" instead of "exit with")
                http://www.w3.org/TR/xquery-sx-10/
                
-            4. XQuery 1.1
+            4. XQuery Full Text 1.0
+               Candidate Recommendation / 09 July 2009
+               http://www.w3.org/TR/xpath-full-text-10/
+
+               Support in not quite complete in the sense that
+               several full text - related tokens are treated as
+               keywords and not allowed for use as NCName :
+               'ftand', 'ftcontains', 'ftor', 'insensitive',
+               'sensitive', 'stemming', 'thesaurus', 'wildcards'.
+
+            5. XQuery 1.1
                Partial support of Working Draft / 3 December 2008
                http://www.w3.org/TR/xquery-11/
                The features not supported are windows and decimal formats.
@@ -98,12 +108,19 @@ moduleDecl
     : MODULE NAMESPACE ncName SymEq uriLiteral ';'
     ;
 prolog
-    :                                                             // XQuery 1.0
-      //((defaultNamespaceDecl | setter | namespaceDecl | importDecl) ';')* 
-      //((varDecl | functionDecl | optionDecl) ';')*
-                                                                  // XQuery 1.1
-      ((defaultNamespaceDecl | setter | namespaceDecl | importDecl) ';')* 
-      ((varDecl | functionDecl | optionDecl | contextItemDecl) ';')*
+    : ((
+            defaultNamespaceDecl 
+          | setter 
+          | namespaceDecl 
+          | importDecl
+          | ftOptionDecl                                        // ext:fulltext
+      ) ';')* 
+      ((
+            varDecl 
+          | functionDecl 
+          | optionDecl                                            // XQuery 1.1
+          | contextItemDecl
+      ) ';')*
     ;
 setter
     : boundarySpaceDecl 
@@ -130,6 +147,9 @@ defaultNamespaceDecl
     ;
 optionDecl
     : DECLARE OPTION qName StringLiteral
+    ;
+ftOptionDecl
+    : DECLARE FT_OPTION ftMatchOptions
     ;
 orderingModeDecl
     : DECLARE ORDERING (ORDERED | UNORDERED)
@@ -256,15 +276,25 @@ flworExpr
     : (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
     ;
 forClause
-    : FOR  '$' varName typeDeclaration? positionalVar? IN exprSingle 
-      (',' '$' varName typeDeclaration? positionalVar? IN exprSingle)*
+    : //FOR  '$' varName typeDeclaration? positionalVar? IN exprSingle 
+      //(',' '$' varName typeDeclaration? positionalVar? IN exprSingle)*
+                                                                // ext:fulltext
+      FOR  '$' varName typeDeclaration? positionalVar? ftScoreVar? IN exprSingle 
+      (',' '$' varName typeDeclaration? positionalVar? ftScoreVar? IN exprSingle)*
     ;
 positionalVar
     : AT '$' varName
     ;
+ftScoreVar                                                      // ext:fulltext
+    : SCORE '$' varName
+    ;
 letClause
-    : LET '$' varName typeDeclaration? ':=' exprSingle 
-     (',' '$' varName typeDeclaration? ':=' exprSingle)*
+    : //LET '$' varName typeDeclaration? ':=' exprSingle 
+     //(',' '$' varName typeDeclaration? ':=' exprSingle)*
+                                                                // ext:fulltext
+     ((LET '$' varName typeDeclaration?) | (LET SCORE '$' varName)) 
+         ':=' exprSingle
+     (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
     ;
 whereClause
     : WHERE exprSingle
@@ -333,7 +363,12 @@ andExpr
     : comparisonExpr ( AND comparisonExpr )*
     ;
 comparisonExpr
-    : rangeExpr ( (valueComp | generalComp | nodeComp) rangeExpr )?
+    : //rangeExpr ( (valueComp | generalComp | nodeComp) rangeExpr )?
+                                                                // ext:fulltext
+      ftContainsExpr ( (valueComp | generalComp | nodeComp) ftContainsExpr )?
+    ;
+ftContainsExpr                                                  // ext:fulltext
+    : rangeExpr (FTCONTAINS ftSelection ftIgnoreOption?)?
     ;
 rangeExpr
     : additiveExpr ( TO additiveExpr )?
@@ -702,69 +737,218 @@ typeName
 uriLiteral
     : StringLiteral
     ;
-revalidationDecl                                                  // ext:update
+// start of ext:update specific rules
+revalidationDecl
     : DECLARE REVALIDATION (STRICT | LAX | SKIP)
     ;
-insertExprTargetChoice                                            // ext:update
+insertExprTargetChoice
     : ((AS (FIRST | LAST))? INTO)
     | AFTER
     | BEFORE
     ;
-insertExpr                                                        // ext:update
+insertExpr
     : INSERT (NODE | NODES) sourceExpr insertExprTargetChoice targetExpr
     ;
-deleteExpr                                                        // ext:update
+deleteExpr
     : DELETE (NODE | NODES) targetExpr
     ;
-replaceExpr                                                       // ext:update
+replaceExpr
     : REPLACE (VALUE OF)? NODE targetExpr WITH exprSingle
     ;
-renameExpr                                                        // ext:update
+renameExpr
     : RENAME NODE targetExpr AS newNameExpr
     ;
-sourceExpr                                                        // ext:update
+sourceExpr
     : exprSingle
     ;
-targetExpr                                                        // ext:update
+targetExpr
     : exprSingle
     ;
-newNameExpr                                                       // ext:update
+newNameExpr
     : exprSingle
     ;
-transformExpr                                                     // ext:update
+transformExpr
     : COPY '$' varName ':=' exprSingle 
       (',' '$' varName ':=' exprSingle)* 
       MODIFY exprSingle RETURN exprSingle
     ;
-assignmentExpr                                                 // ext:scripting
+// end   of ext:update    specific rules
+// start of ext:scripting specific rules
+assignmentExpr
     : SET '$' varName ':=' exprSingle
     ;
 blockExpr
     : BLOCK block
     ;
-block                                                          // ext:scripting
+block
     : '{' blockDecls blockBody '}'
     ;
-blockDecls                                                     // ext:scripting
+blockDecls
     : (blockVarDecl ';')*
     ;
-blockVarDecl                                                   // ext:scripting
+blockVarDecl
     : DECLARE '$' varName typeDeclaration? (':=' exprSingle)? 
          (',' '$' varName typeDeclaration? (':=' exprSingle)? )*
     ;
-blockBody                                                      // ext:scripting
+blockBody
     : expr
     ;
-exitExpr                                                       // ext:scripting
+exitExpr
     : EXIT RETURNING exprSingle
     ;
-whileExpr                                                      // ext:scripting
+whileExpr
     : WHILE '(' exprSingle ')' whileBody
     ;
 whileBody
     : block
     ;
-// End of W3C grammar.
+// end   of ext:scripting specific rules
+// start of ext:fulltext  specific rules
+ftSelection
+    : ftOr ftPosFilter*
+    ;
+ftWeight
+    : WEIGHT rangeExpr
+    ;
+ftOr
+    : ftAnd (FTOR ftAnd)*
+    ;
+ftAnd
+    : ftMildNot (FTAND ftMildNot)*
+    ;
+ftMildNot
+    : ftUnaryNot (NOT IN ftUnaryNot)*
+    ;
+ftUnaryNot
+    : FTNOT? ftPrimaryWithOptions
+    ;
+ftPrimaryWithOptions
+    : ftPrimary ftMatchOptions? ftWeight?
+    ;
+ftPrimary
+    : ftWords ftTimes?
+    | '(' ftSelection ')'
+    | ftExtensionSelection
+    ;
+ftWords
+    : ftWordsValue ftAnyAllOption?
+    ;
+ftWordsValue
+    : literal
+    | '{' expr '}'
+    ;
+ftExtensionSelection
+    : (Pragma { parsePragma(); })+ '{' ftSelection? '}'
+    ;
+ftAnyAllOption
+    : ANY WORD?
+    | ALL WORDS?
+    | PHRASE
+    ;
+ftTimes
+    : OCCURS ftRange TIMES
+    ;
+ftRange
+    : EXACTLY  additiveExpr
+    | AT LEAST additiveExpr
+    | AT MOST  additiveExpr
+    | FROM     additiveExpr TO additiveExpr
+    ;
+ftPosFilter
+    : ftOrder
+    | ftWindow
+    | ftDistance
+    | ftScope
+    | ftContent
+    ;
+ftOrder
+    : ORDERED
+    ;
+ftWindow
+    : WINDOW additiveExpr ftUnit
+    ;
+ftDistance
+    : DISTANCE ftRange ftUnit
+    ;
+ftUnit
+    : WORDS
+    | SENTENCES
+    | PARAGRAPHS
+    ;
+ftScope
+    : (SAME | DIFFERENT) ftBigUnit
+    ;
+ftBigUnit
+    : SENTENCE
+    | PARAGRAPH
+    ;
+ftContent
+    : AT START
+    | AT END
+    | ENTIRE CONTENT
+    ;
+ftMatchOptions
+    : ftMatchOption+
+    ;
+ftMatchOption
+    : ftLanguageOption
+    | ftWildCardOption
+    | ftThesaurusOption
+    | ftStemOption
+    | ftCaseOption
+    | ftDiacriticsOption
+    | ftStopWordOption
+    | ftExtensionOption
+    ;
+ftCaseOption
+    : CASE INSENSITIVE
+    | CASE SENSITIVE
+    | LOWERCASE
+    | UPPERCASE
+    ;
+ftDiacriticsOption
+    : DIACRITICS INSENSITIVE
+    | DIACRITICS SENSITIVE
+    ;
+ftStemOption
+    : WITH STEMMING
+    | WITHOUT STEMMING
+    ;
+ftThesaurusOption
+    : WITH THESAURUS (ftThesaurusID | DEFAULT) 
+    | WITH THESAURUS '(' (ftThesaurusID | DEFAULT) (',' ftThesaurusID)* ')'
+    | WITHOUT THESAURUS
+    ;
+ftThesaurusID
+    : AT uriLiteral (RELATIONSHIP StringLiteral)? (ftRange LEVELS)?
+    ;
+ftStopWordOption
+    : WITH         STOP WORDS ftStopWords ftStopWordsInclExcl*
+    | WITHOUT      STOP WORDS
+    | WITH DEFAULT STOP WORDS ftStopWordsInclExcl*
+    ;
+ftStopWords
+    : AT uriLiteral
+    | '(' StringLiteral (',' StringLiteral)* ')'
+    ;
+ftStopWordsInclExcl
+    : (UNION | EXCEPT) ftStopWords
+    ;
+ftLanguageOption
+    : LANGUAGE StringLiteral
+    ;
+ftWildCardOption
+    : WITH    WILDCARDS
+    | WITHOUT WILDCARDS
+    ;
+ftExtensionOption
+    : OPTION qName StringLiteral
+    ;
+ftIgnoreOption
+    : WITHOUT CONTENT unionExpr
+    ;
+// end of ext:fulltext specific rules
+// End of W3C grammars.
 
 qName
     : ncName  (Colon {noSpaceBefore();}  ncName {noSpaceBefore();})?
@@ -878,7 +1062,7 @@ fncName
     | WHERE
     | XQUERY
     | STRICT
-    // ext:update tokens
+    // start of ext:update tokens
     | AFTER
     | BEFORE
     | DELETE
@@ -895,8 +1079,8 @@ fncName
     | UPDATING
     | VALUE
     | WITH
-    // end of ext:update tokens
-    // ext:scripting tokens
+    // end   of ext:update    tokens
+    // start of ext:scripting tokens
     | BLOCK
     | CONSTANT
     | EXIT
@@ -904,7 +1088,53 @@ fncName
     | SEQUENTIAL
     | SET
     // WHILE
-    // XQuery 1.1 tokens
+    // end   of ext:scripting tokens
+    // start of ext:fulltext  tokens
+    | ALL
+    | ANY
+    | CONTENT
+    | DIACRITICS
+    | DIFFERENT
+    | DISTANCE
+    | END
+    | ENTIRE
+    | EXACTLY
+    | FROM
+  //| FTAND
+  //| FTCONTAINS
+    | FTNOT
+    | FT_OPTION
+  //| FTOR
+  //| INSENSITIVE
+    | LANGUAGE
+    | LEVELS
+    | LOWERCASE
+    | MOST
+    | NOT
+    | OCCURS
+    | PARAGRAPH
+    | PARAGRAPHS
+    | PHRASE
+    | RELATIONSHIP
+    | SAME
+    | SCORE
+  //| SENSITIVE
+    | SENTENCE
+    | SENTENCES
+    | START
+  //| STEMMING
+    | STOP
+  //| THESAURUS
+    | TIMES
+    | UPPERCASE
+    | WEIGHT
+  //| WILDCARDS
+    | WINDOW
+    | WITHOUT
+    | WORD
+    | WORDS
+    // end   of ext:fulltext tokens
+    // start of XQuery 1.1   tokens
     | CATCH
     | CONTEXT
     | DETERMINISTIC
@@ -1030,7 +1260,7 @@ VARIABLE                : 'variable';
 VERSION                 : 'version';
 WHERE                   : 'where';
 XQUERY                  : 'xquery';
-// ext:update tokens
+// start of ext:update tokens
 AFTER                   : 'after';
 BEFORE                  : 'before';
 DELETE                  : 'delete';
@@ -1047,8 +1277,8 @@ SKIP                    : 'skip';
 UPDATING                : 'updating';
 VALUE                   : 'value';
 WITH                    : 'with';
-// end of ext:update tokens
-// ext:scripting tokens
+// end   of ext:update    tokens
+// start of ext:scripting tokens
 BLOCK                   : 'block';
 CONSTANT                : 'constant';
 EXIT                    : 'exit';
@@ -1056,8 +1286,53 @@ SEQUENTIAL              : 'sequential';
 RETURNING               : 'returning';
 SET                     : 'set';
 WHILE                   : 'while';
-// end of ext:scripting tokens
-// XQuery 1.1 tokens
+// end   of ext:scripting tokens
+// start of ext:fulltext  tokens
+ALL                     : 'all';
+ANY                     : 'any';
+CONTENT                 : 'content';
+DIACRITICS              : 'diacritics';
+DIFFERENT               : 'different';
+DISTANCE                : 'distance';
+END                     : 'end';
+ENTIRE                  : 'entire';
+EXACTLY                 : 'exactly';
+FROM                    : 'from';
+FTAND                   : 'ftand';
+FTCONTAINS              : 'ftcontains';
+FTNOT                   : 'ftnot';
+FT_OPTION               : 'ft-option';
+FTOR                    : 'ftor';
+INSENSITIVE             : 'insensitive';
+LANGUAGE                : 'language';
+LEVELS                  : 'levels';
+LOWERCASE               : 'lowercase';
+MOST                    : 'most';
+NOT                     : 'not';
+OCCURS                  : 'occurs';
+PARAGRAPH               : 'paragraph';
+PARAGRAPHS              : 'paragraphs';
+PHRASE                  : 'phrase';
+RELATIONSHIP            : 'relationship';
+SAME                    : 'same';
+SCORE                   : 'score';
+SENSITIVE               : 'sensitive';
+SENTENCE                : 'sentence';
+SENTENCES               : 'sentences';
+START                   : 'start';
+STEMMING                : 'stemming';
+STOP                    : 'stop';
+THESAURUS               : 'thesaurus';
+TIMES                   : 'times';
+UPPERCASE               : 'uppercase';
+WEIGHT                  : 'weight';
+WILDCARDS               : 'wildcards';
+WINDOW                  : 'window';
+WITHOUT                 : 'without';
+WORD                    : 'word';
+WORDS                   : 'words';
+// end   of ext:fulltext tokens
+// start of XQuery 1.1   tokens
 CATCH                   : 'catch';
 CONTEXT                 : 'context';
 DETERMINISTIC           : 'deterministic';
