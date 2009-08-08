@@ -31,9 +31,15 @@ import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.TokenStream;
 
 /**
- * Base class for generated XQuery parser. Provides hooks for control of 
- * error handling and some utilities for "add-on" parsing of details which 
- * can not or should better not be handled in the generated parser.
+ * Base class for generated XQuery parser. Has the following roles:
+ * <ol>
+ * <li> Produce tokens of custom type.</li>
+ * <li> Provide control over behavior upon errors.</li>
+ * <li> Switch between XQuery and direct XML lexers.</li>
+ * <li> Provide utilities for "add-on" parsing of details which 
+ *      can not or should better not be handled in the generated parser.
+ * </li>
+ * </ol>
  */
 public class Parser
     extends org.antlr.runtime.Parser
