@@ -6,6 +6,10 @@ As noted on project home page and in code - 8 tokens related to Full Text cause 
 
 `ftMatchOptions : ((ftMatchOption)=>ftMatchOption)+ ;`
 
+or somewhat more efficiently overall :
+
+`ftPrimaryWithOptions : ftPrimary ((ftMatchOption)=>ftMatchOption)* ftWeight? ;`
+
 This leaves 3 offending tokens : 'ftand', 'ftcontains' and 'ftor' which cause non LL(`*`) issues with the rule for `stepExpr`. The root cause for these is apparently the "naked" curly bracket syntax in the rule for `ftWordsValue` :
 
 `ftWordsValue : literal | '{' expr '}' ;`
