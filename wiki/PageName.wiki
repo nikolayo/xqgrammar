@@ -27,7 +27,8 @@ ftWordsValue
 then problems with stepExpr disappear (but of course the tests do not pass). I have not discovered yet how exactly this construct can affect stepExpr. So far I just know by previous experience that given the XQuery syntax with essentially no reserved words and with heavey (over)use of curly brackets it is very difficult to introduce new curly bracket constructs without causing problems. For example, here is a non LL(`*`) decision I discovered in earlier draft of Scripting where blocks where "naked" :
 
 if(condition) then element else {...}
-if(condition) them element else {...} else other
+
+if(condition) then element else {...} else other
 
 The curly bracket syntax in ftWordsValue is somewhat "guarded" by FTCONTAINS in ftContainsExpr but apparently this is not sufficient for an LL(`*`) parser. 
 
