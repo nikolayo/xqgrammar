@@ -6,7 +6,7 @@ As noted on project home and in code - 8 tokens related to Full Text cause gramm
 
 `ftMatchOptions : ((ftMatchOption)=>ftMatchOption)+ ;`
 
-This leaves 3 offending tokens : 'ftand', 'ftcontains' and 'ftor' which cause non LL(`*`) issues with the rule for `stepExpr`. The root cause for these is apparently the "naked" curly bracket syntax in the rule for ftWordValue:
+This leaves 3 offending tokens : 'ftand', 'ftcontains' and 'ftor' which cause non LL(`*`) issues with the rule for `stepExpr`. The root cause for these is apparently the "naked" curly bracket syntax in the rule for `ftWordsValue` :
 
 `ftWordsValue : literal | '{' expr '}' ;`
 
