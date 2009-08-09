@@ -31,7 +31,7 @@ One way or another - remaining 3 token issues will be resolved but at the end of
 
 P.S.:
 
-Interesting question : What is the meaning of the following expression in Full Text:
+One interesting question is what does the following statement mean in Full Text?
 
 `element ftcontains {'whatever'}`
 
