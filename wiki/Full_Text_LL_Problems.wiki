@@ -18,7 +18,7 @@ If it is replaced by something like :
 
 `ftWordsValue : literal | FT_WORDS_VALUE '{' expr '}' ;`
 
-then problems with `stepExpr` disappear (but of course the tests from the suite do not pass). I have not discovered yet how exactly this construct affects `stepExpr`. So far I just know by previous experience that given the XQuery syntax with essentially no reserved words and with heavy (over)use of curly brackets it is very difficult to introduce new curly bracket constructs without causing problems. For example, here is a non LL(`*`) decision I discovered in earlier draft of Scripting where blocks where "naked" :
+then problems with `stepExpr` disappear (but of course the tests from the suite do not pass). I have not discovered yet how exactly this construct damages `stepExpr`. So far I just know by previous experience that given the XQuery syntax with essentially no reserved words and with heavy (over)use of curly brackets it is very difficult to introduce new curly bracket constructs without causing problems. For example, here is a non LL(`*`) decision I discovered in earlier draft of Scripting where blocks where "naked" :
 
 `if(condition) then element else {...}`
 
