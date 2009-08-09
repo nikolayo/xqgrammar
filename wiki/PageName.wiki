@@ -1,0 +1,40 @@
+#summary Full Text LL(*) issues
+
+As noted on project home and in code - 8 tokens related to Full Text cause grammar issues if their use as NCName is allowed : 'ftand', 'ftcontains', 'ftor', 'insensitive', 'sensitive', 'stemming', 'thesaurus', 'wildcards'. Five out of these seem at first glance easy to handle with the help of syntax predicates as follows:
+
+`
+ftPrimaryWithOptions
+    : ftPrimary ((ftMatchOptions)=>ftMatchOptions)? ftWeight?
+    ;
+
+ftMatchOptions
+    : ((ftMatchOption)=>ftMatchOption)+
+    ;
+`
+This leaves 3 offending tokens : 'ftand', 'ftcontains' and 'ftor' which cause non LL(*) issues with the rule for stepExpr. The root cause for these is apparently the "naked" curly bracket syntax in the rule for ftWordValue:
+
+`
+ftWordsValue
+    : literal
+    | '{' expr '}'
+    ;
+`
+
+If it is replaced by something like :
+
+`
+ftWordsValue
+    : literal
+    | FT_WORDS_VALUE '{' expr '}'
+    ;
+`
+then problems with stepExpr disappear (but of course the tests do not pass). I have not discovered yet how exactly this construct can affect stepExpr. So far I just know by previous experience that given the XQuery syntax with essentially no reserved words and with heavey (over)use of curly brackets it is very difficult to introduce new curly bracket constructs without causing problems. For example, here is a non LL(*) decision I discovered in earlier draft of Scripting where blocks where "naked" :
+
+`
+if(condition) then element else {...}
+if(condition) them element else {...} else other
+`
+The curly bracket syntax in ftWordsValue is somewhat "guarded" by FTCONTAINS in ftContainsExpr but apparently this is not sufficient for an LL(*) parser. 
+
+One way or another - remaining 3 token issues will be resolved but at the end of the day there will also be the question : is cost of added backtracking worth the ability to use 8 (or 3) tokens as NCName's?
+
