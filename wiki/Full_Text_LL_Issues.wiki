@@ -1,4 +1,4 @@
-==Full Text LL(`*`) issues==
+==Full Text LL(`*`) Issues==
 
 As noted on project home page and in code - 8 tokens related to Full Text cause grammar issues if their use as NCName is allowed : 'ftand', 'ftcontains', 'ftor', 'insensitive', 'sensitive', 'stemming', 'thesaurus', 'wildcards'. Five out of these seem at first glance easy to handle with the help of syntax predicates as follows:
 
