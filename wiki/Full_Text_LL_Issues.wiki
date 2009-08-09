@@ -6,7 +6,7 @@ As noted on project home page and in code - 8 tokens related to Full Text cause 
 
 `ftMatchOptions : ((ftMatchOption)=>ftMatchOption)+ ;`
 
-or somewhat more efficiently overall :
+or somewhat more efficiently overall - just:
 
 `ftPrimaryWithOptions : ftPrimary ((ftMatchOption)=>ftMatchOption)* ftWeight? ;`
 
