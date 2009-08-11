@@ -43,6 +43,12 @@ I. XQTS : 100% pass with the following remarks:
    Handling of encoding does not belong to parser propper and if converted
    manually to appropriate encoding, this test passes too.
 
+3. One test is expected to and does generate syntax error under XQuery 1.0 
+   due to multiple where clauses in FLWOR expression. XQuery 1.1 grammar 
+   though allows multiple where clauses, so no syntax error is generated. 
+   The test is:
+
+   Queries/XQuery/Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq
 
 II.XQUTS : 100% pass.
 

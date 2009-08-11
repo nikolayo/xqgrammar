@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.0
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.0
             
             Supported W3C grammars:
             
@@ -40,16 +40,22 @@
                http://www.w3.org/TR/xpath-full-text-10/
 
                Support in not quite complete in the sense that
-               several full text - related tokens are treated as
+               three full text - related tokens are treated as
                keywords and not allowed for use as NCName :
-               'ftand', 'ftcontains', 'ftor', 'insensitive',
-               'sensitive', 'stemming', 'thesaurus', 'wildcards'.
+               'ftand', 'ftcontains', 'ftor'. This is a temporary
+               hack. Full Text grammar is allegedly ambiguous and
+               if this is truly the case it will be changed in a 
+               way whcih will make the hack unnecessary. For 
+               details see bug #7247 in W3C public Bugzilla.
 
             5. XQuery 1.1
-               Partial support of Working Draft / 3 December 2008
+               Working Draft / 3 December 2008
                http://www.w3.org/TR/xquery-11/
-               The features not supported are windows and decimal formats.
-          
+               
+               The only unsupported feature is "outer for". Its syntax
+               is not LL(*) and is expected to change because of this.
+               For details see bug #6927 in W3C public Bugzilla.
+
 =============================================================================*/
 
 grammar XQ;
@@ -85,8 +91,7 @@ tokens {
 }
 
 @members {
-    // small trick to pass token codes 
-    // to super class at creation time
+    // pass some token codes to super class at creation time
     boolean dummy = setTokenCodes(NCName, Colon);
 }
 
@@ -95,8 +100,8 @@ module
     ;    
 versionDecl
     : //XQUERY VERSION StringLiteral (ENCODING StringLiteral)? ';' //XQuery 1.0
-      XQUERY  ((ENCODING StringLiteral {checkEncoding();}) |       //XQuery 1.1
-      (VERSION StringLiteral (ENCODING StringLiteral {checkEncoding();})?)) ';'
+      XQUERY  ((ENCODING StringLiteral {checkEncoding();})         //XQuery 1.1
+    | (VERSION StringLiteral (ENCODING StringLiteral {checkEncoding();})?)) ';'
     ;
 mainModule
     : prolog queryBody
@@ -118,8 +123,8 @@ prolog
       ((
             varDecl 
           | functionDecl 
-          | optionDecl                                            // XQuery 1.1
-          | contextItemDecl
+          | optionDecl
+          | contextItemDecl                                       // XQuery 1.1
       ) ';')*
     ;
 setter
@@ -129,8 +134,9 @@ setter
     | constructionDecl  
     | orderingModeDecl     
     | emptyOrderDecl 
-    | revalidationDecl                                            // ext:update
     | copyNamespacesDecl
+    | revalidationDecl                                            // ext:update
+    | decimalFormatDecl                                           // XQuery 1.1
     ;
 importDecl
     : schemaImport
@@ -148,8 +154,8 @@ defaultNamespaceDecl
 optionDecl
     : DECLARE OPTION qName StringLiteral
     ;
-ftOptionDecl
-    : DECLARE FT_OPTION ftMatchOptions
+ftOptionDecl                                                    // ext:fulltext
+    : DECLARE FT_OPTION (ftMatchOption)+
     ;
 orderingModeDecl
     : DECLARE ORDERING (ORDERED | UNORDERED)
@@ -159,6 +165,22 @@ emptyOrderDecl
  	;
 copyNamespacesDecl
     : DECLARE COPY_NAMESPACES preserveMode ',' inheritMode
+    ;
+decimalFormatDecl                                                 // XQuery 1.1
+    : DECLARE ((DECIMAL_FORMAT qName) | (DEFAULT DECIMAL_FORMAT))
+      (dfPropertyName SymEq StringLiteral)*
+    ;
+dfPropertyName                                                    // XQuery 1.1
+    : DECIMAL_SEPARATOR
+    | GROUPING_SEPARATOR
+    | INFINITY
+    | MINUS_SIGN
+    | NAN
+    | PERCENT
+    | PER_MILLE
+    | ZERO_DIGIT
+    | DIGIT
+    | PATTERN_SEPARATOR
     ;
 preserveMode
     : PRESERVE | NO_PRESERVE
@@ -198,10 +220,6 @@ varDefaultValue                                                   // XQuery 1.1
 constructionDecl
     : DECLARE CONSTRUCTION (STRIP | PRESERVE)
     ;
-contextItemDecl                                                   // XQuery 1.1
-    : DECLARE CONTEXT ITEM (AS itemType)? 
-      ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
-    ;
 functionDecl
     : // DECLARE FUNCTION fqName '(' paramList? ')'               // XQuery 1.0
       // DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'    // ext:update
@@ -227,20 +245,22 @@ enclosedExpr
 queryBody
     : expr
     ;
-expr  // Some hand crafted  parsing since                      // ext:scripting
+expr
+      // : exprSingle (',' exprSingle)* ;                          //XQuery 1.0
+      // Some hand crafted  parsing since                      // ext:scripting
       // original W3C grammar is not LL(*)
       @init
       {
-        boolean seqStarted = false;
-        boolean seqEnded   = false;
+        boolean isSeq  = false;
+        boolean seqEnd = false;
       }
       @after {
-        if(seqStarted && !seqEnded) {
+        if(isSeq && !seqEnd) {
             raiseError("Sequential expression not terminated by ';'.");
         }
       }
-    : exprSingle ((',' | ';' { seqStarted = true; }) exprSingle )* 
-      (';' { seqEnded = true; })?
+    : exprSingle ((',' | ';' { isSeq = true; }) exprSingle )* 
+      (';' { isSeq = true; seqEnd = true; })?
     ;
 /*
 // W3C grammar:
@@ -273,10 +293,25 @@ exprSingle
     | tryCatchExpr                                                // XQuery 1.1
     ;
 flworExpr
-    : (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
+    : // XQuery 1.0 :
+      //(forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
+      initalClause intermediateClause* returnClause               // XQuery 1.1
+    ;
+initalClause                                                      // XQuery 1.1
+    : forClause
+    | letClause
+    | windowClause
+    ;
+intermediateClause                                                // XQuery 1.1
+    : initalClause
+    | whereClause
+    | groupByClause
+    | orderByClause
+    | countClause
     ;
 forClause
-    : //FOR  '$' varName typeDeclaration? positionalVar? IN exprSingle 
+    : // XQuery 1.0 :
+      //FOR  '$' varName typeDeclaration? positionalVar? IN exprSingle 
       //(',' '$' varName typeDeclaration? positionalVar? IN exprSingle)*
                                                                 // ext:fulltext
       FOR  '$' varName typeDeclaration? positionalVar? ftScoreVar? IN exprSingle 
@@ -289,15 +324,58 @@ ftScoreVar                                                      // ext:fulltext
     : SCORE '$' varName
     ;
 letClause
-    : //LET '$' varName typeDeclaration? ':=' exprSingle 
-     //(',' '$' varName typeDeclaration? ':=' exprSingle)*
+    : // XQuery 1.0 : 
+      //LET '$' varName typeDeclaration? ':=' exprSingle 
+      //(',' '$' varName typeDeclaration? ':=' exprSingle)*
                                                                 // ext:fulltext
-     ((LET '$' varName typeDeclaration?) | (LET SCORE '$' varName)) 
-         ':=' exprSingle
-     (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
+      ((LET '$' varName typeDeclaration?) | (LET SCORE '$' varName)) 
+          ':=' exprSingle
+      (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
+    ;
+windowClause                                                      // XQuery 1.1
+    : FOR (tumblingWindowClause | slidingWindowClause)
+    ;
+tumblingWindowClause                                              // XQuery 1.1
+    : TUMBLING WINDOW '$' varName typeDeclaration? IN exprSingle 
+      windowStartCondition windowEndCondition
+    ;
+slidingWindowClause                                               // XQuery 1.1
+    : SLIDING WINDOW  '$' varName typeDeclaration? IN exprSingle 
+      windowStartCondition windowEndCondition
+    ;
+windowStartCondition                                              // XQuery 1.1
+    : START windowVars WHEN exprSingle
+    ;
+windowEndCondition                                                // XQuery 1.1
+    : ONLY? END windowVars WHEN exprSingle
+    ;
+windowVars                                                        // XQuery 1.1
+    : ('$' currentItem)? positionalVar? 
+      (PREVIOUS '$' previousItem)? (NEXT '$' nextItem)?
+    ;
+currentItem                                                       // XQuery 1.1
+    : qName
+    ;
+previousItem                                                      // XQuery 1.1
+    : qName
+    ;
+nextItem                                                          // XQuery 1.1
+    : qName
+    ;
+countClause                                                       // XQuery 1.1
+    : COUNT '$' varName
     ;
 whereClause
     : WHERE exprSingle
+    ;
+groupByClause                                                     // XQuery 1.1
+    : GROUP BY groupingSpecList
+    ;
+groupingSpecList                                                  // XQuery 1.1
+    : groupingSpec (',' groupingSpec)*
+    ;
+groupingSpec                                                      // XQuery 1.1
+    : '$' varName (COLLATION uriLiteral)?
     ;
 orderByClause
     : ((ORDER BY) | (STABLE ORDER BY)) orderSpecList
@@ -312,6 +390,9 @@ orderModifier
     : (ASCENDING | DESCENDING)? 
       (EMPTY (GREATEST | LEAST))? 
       (COLLATION uriLiteral)?
+    ;
+returnClause                                                      // XQuery 1.1
+    : RETURN exprSingle
     ;
 quantifiedExpr
     : (SOME | EVERY) '$' varName typeDeclaration? IN exprSingle 
@@ -329,33 +410,6 @@ caseClause
 ifExpr
     : IF '(' expr ')' THEN exprSingle ELSE exprSingle
     ;
-tryCatchExpr                                                      // XQuery 1.1
-    : tryClause catchClause+
-    ;
-tryClause                                                         // XQuery 1.1
-    : TRY LCurly tryTargetExpr RCurly
-    ;
-tryTargetExpr                                                     // XQuery 1.1
-    : expr
-    ;
-catchClause                                                       // XQuery 1.1
-    : CATCH catchErrorList catchVars? LCurly expr RCurly
-    ;
-catchErrorList                                                    // XQuery 1.1
-    : nameTest ('|' nameTest)*
-    ;
-catchVars                                                         // XQuery 1.1
-    : '(' catchErrorCode (',' catchErrorDesc (',' catchErrorVal)?)? ')'
-    ;
-catchErrorCode                                                    // XQuery 1.1
-    : '$' varName
-    ;
-catchErrorDesc                                                    // XQuery 1.1
-    : '$' varName
-    ;
-catchErrorVal                                                     // XQuery 1.1
-    : '$' varName
-    ;
 orExpr
     : andExpr ( OR andExpr )*
     ;
@@ -363,7 +417,8 @@ andExpr
     : comparisonExpr ( AND comparisonExpr )*
     ;
 comparisonExpr
-    : //rangeExpr ( (valueComp | generalComp | nodeComp) rangeExpr )?
+    : //XQuery 1.0 :
+      //rangeExpr ( (valueComp | generalComp | nodeComp) rangeExpr )?
                                                                 // ext:fulltext
       ftContainsExpr ( (valueComp | generalComp | nodeComp) ftContainsExpr )?
     ;
@@ -436,6 +491,7 @@ validationMode
 extensionExpr
     : (Pragma { parsePragma(); })+ LCurly expr? RCurly
     ;
+//W3C grammar :
 //pragma                                                         // ws:explicit
 //  : '(#' S? qName (S PragmaContents)? '#)'
 //  ;
@@ -596,6 +652,7 @@ commonContent
 dirEnclosedExpr
     : LCurly { enterXQuery(); } expr RCurly { leaveXQuery(); }
     ;
+//W3C grammar :
 //dirCommentConstructor                                          // ws:explicit
 //    : '<!--' DirCommentContents '-->'
 //    ;
@@ -633,18 +690,6 @@ compCommentConstructor
     ;
 compPIConstructor
     : PROCESSING_INSTRUCTION (ncName | (LCurly expr RCurly)) LCurly expr? RCurly
-    ;
-compNamespaceConstructor                                          // XQuery 1.1
-    : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr? RCurly
-    ;
-prefix                                                            // XQuery 1.1
-    : ncName
-    ;
-prefixExpr                                                        // XQuery 1.1
-    : expr
-    ;
-uriExpr                                                           // XQuery 1.1
-    : expr
     ;
 singleType
     : atomicType '?'?
@@ -692,9 +737,6 @@ textTest
     ;
 commentTest
     : COMMENT '(' ')'
-    ;
-namespaceNodeTest                                                 // XQuery 1.1
-    : NAMESPACE_NODE '(' ')'
     ;
 piTest
     : PROCESSING_INSTRUCTION '(' (ncName | StringLiteral)? ')'
@@ -781,7 +823,7 @@ blockExpr
     : BLOCK block
     ;
 block
-    : '{' blockDecls blockBody '}'
+    : LCurly blockDecls blockBody RCurly
     ;
 blockDecls
     : (blockVarDecl ';')*
@@ -823,7 +865,7 @@ ftUnaryNot
     : FTNOT? ftPrimaryWithOptions
     ;
 ftPrimaryWithOptions
-    : ftPrimary ftMatchOptions? ftWeight?
+    : ftPrimary ((ftMatchOption)=>ftMatchOption)* ftWeight?
     ;
 ftPrimary
     : ftWords ftTimes?
@@ -835,10 +877,10 @@ ftWords
     ;
 ftWordsValue
     : literal
-    | '{' expr '}'
+    | LCurly expr RCurly
     ;
 ftExtensionSelection
-    : (Pragma { parsePragma(); })+ '{' ftSelection? '}'
+    : (Pragma { parsePragma(); })+ LCurly ftSelection? RCurly
     ;
 ftAnyAllOption
     : ANY WORD?
@@ -887,9 +929,10 @@ ftContent
     | AT END
     | ENTIRE CONTENT
     ;
-ftMatchOptions
-    : ftMatchOption+
-    ;
+//W3C grammar :
+//ftMatchOptions
+//  : (ftMatchOption)+
+//  ;
 ftMatchOption
     : ftLanguageOption
     | ftWildCardOption
@@ -948,17 +991,66 @@ ftIgnoreOption
     : WITHOUT CONTENT unionExpr
     ;
 // end of ext:fulltext specific rules
+// start of Xquery 1.1 specific rules
+contextItemDecl
+    : DECLARE CONTEXT ITEM (AS itemType)? 
+      ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
+    ;
+tryCatchExpr
+    : tryClause catchClause+
+    ;
+tryClause
+    : TRY LCurly tryTargetExpr RCurly
+    ;
+tryTargetExpr
+    : expr
+    ;
+catchClause
+    : CATCH catchErrorList catchVars? LCurly expr RCurly
+    ;
+catchErrorList
+    : nameTest ('|' nameTest)*
+    ;
+catchVars
+    : '(' catchErrorCode (',' catchErrorDesc (',' catchErrorVal)?)? ')'
+    ;
+catchErrorCode
+    : '$' varName
+    ;
+catchErrorDesc
+    : '$' varName
+    ;
+catchErrorVal
+    : '$' varName
+    ;
+compNamespaceConstructor
+    : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr? RCurly
+    ;
+prefix
+    : ncName
+    ;
+prefixExpr
+    : expr
+    ;
+uriExpr
+    : expr
+    ;
+namespaceNodeTest
+    : NAMESPACE_NODE '(' ')'
+    ;
+// end of XQuery 1.1 specific rules
 // End of W3C grammars.
 
 qName
-    : ncName  (Colon {noSpaceBefore();}  ncName {noSpaceBefore();})?
+    : ncName (Colon {noSpaceBefore();} ncName {noSpaceBefore();})?
     ;
 fqName
-    : fncName (Colon {noSpaceBefore();} fncName {noSpaceBefore();})?
+    : ncName  Colon {noSpaceBefore();} ncName {noSpaceBefore();}
+    | fncName
     ;
 ncName
     : fncName
-    // reserved function names
+    // reserved function names - not allowed in unprefixed form
     | ATTRIBUTE
     | COMMENT
     | DOCUMENT_NODE
@@ -972,8 +1064,8 @@ ncName
     | SCHEMA_ELEMENT
     | TEXT
     | TYPESWITCH
-    | NAMESPACE_NODE                                              // XQuery 1.1
     | WHILE                                                       // ext:update
+    | NAMESPACE_NODE                                              // XQuery 1.1
     ;
 fncName
     : NCName
@@ -1100,12 +1192,12 @@ fncName
     | ENTIRE
     | EXACTLY
     | FROM
-  //| FTAND
-  //| FTCONTAINS
+  //| FTAND         // stepExpr not LL(*)
+  //| FTCONTAINS    // stepExpr not LL(*)
     | FTNOT
     | FT_OPTION
-  //| FTOR
-  //| INSENSITIVE
+  //| FTOR          // stepExpr not LL(*)
+    | INSENSITIVE
     | LANGUAGE
     | LEVELS
     | LOWERCASE
@@ -1118,17 +1210,17 @@ fncName
     | RELATIONSHIP
     | SAME
     | SCORE
-  //| SENSITIVE
+    | SENSITIVE
     | SENTENCE
     | SENTENCES
     | START
-  //| STEMMING
+    | STEMMING
     | STOP
-  //| THESAURUS
+    | THESAURUS
     | TIMES
     | UPPERCASE
     | WEIGHT
-  //| WILDCARDS
+    | WILDCARDS
     | WINDOW
     | WITHOUT
     | WORD
@@ -1141,6 +1233,27 @@ fncName
   //| NAMESPACE_NODE
     | NONDETERMINISTIC
     | TRY
+    // tokens related to decimal formats
+    | DECIMAL_FORMAT
+    | DECIMAL_SEPARATOR
+    | DIGIT
+    | GROUPING_SEPARATOR
+    | INFINITY
+    | MINUS_SIGN
+    | NAN
+    | PATTERN_SEPARATOR
+    | PER_MILLE
+    | PERCENT
+    | ZERO_DIGIT
+    // tokens related to flwor enchancelents
+    | COUNT
+    | GROUP
+    | NEXT
+    | ONLY
+    | PREVIOUS
+    | SLIDING
+    | TUMBLING
+    | WHEN
     // end of XQUery 1.1 tokens
     ;
 LAngle                  : '<';
@@ -1339,6 +1452,27 @@ DETERMINISTIC           : 'deterministic';
 NAMESPACE_NODE          : 'namespace-node';
 NONDETERMINISTIC        : 'nondeterministic';
 TRY                     : 'try';
+// tokens related to decimal formats
+DECIMAL_FORMAT          : 'decimal-format';
+DECIMAL_SEPARATOR       : 'decimal-separator';
+DIGIT                   : 'digit';
+GROUPING_SEPARATOR      : 'grouping-separatpr';
+INFINITY                : 'infinity';
+MINUS_SIGN              : 'minus-sign';
+NAN                     : 'NaN';
+PER_MILLE               : 'per-mille';
+PERCENT                 : 'percent';
+PATTERN_SEPARATOR       : 'pattern-separator';
+ZERO_DIGIT              : 'zero-digit';
+// tokens related to flwor enhancements
+COUNT                   : 'count';
+GROUP                   : 'group';
+NEXT                    : 'next';
+ONLY                    : 'only';
+PREVIOUS                : 'previous';
+SLIDING                 : 'sliding';
+TUMBLING                : 'tumbling';
+WHEN                    : 'when';
 // end of XQuery 1.1 tokens
 
 DirCommentConstructor                                            // ws:explicit
