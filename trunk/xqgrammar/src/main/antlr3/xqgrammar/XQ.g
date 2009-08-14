@@ -39,8 +39,7 @@
                Candidate Recommendation / 09 July 2009
                http://www.w3.org/TR/xpath-full-text-10/
 
-               Support in not quite complete in the sense that
-               three full text - related tokens are treated as
+               Three full text - related tokens are treated as
                keywords and not allowed for use as NCName :
                'ftand', 'ftcontains', 'ftor'. This is a temporary
                hack. Full Text grammar is allegedly ambiguous and
@@ -48,13 +47,21 @@
                way whcih will make the hack unnecessary. For 
                details see bug #7247 in W3C public Bugzilla.
 
+               The grammar has some non LL(*) features which are
+               resolved by syntactic predicate in the rule for
+               ftPrimaryWithOptions. The impact is that generated 
+               parser fails to parse some obscure but valid 
+               expressions. For details and updates see bug #7271 
+               in W3C public Bugzilla. 
+
             5. XQuery 1.1
                Working Draft / 3 December 2008
                http://www.w3.org/TR/xquery-11/
                
-               The only unsupported feature is "outer for". Its syntax
-               is not LL(*) and is expected to change because of this.
-               For details see bug #6927 in W3C public Bugzilla.
+               The only unsupported feature is "outer for". Its 
+               syntax is not LL(*) and is expected to change 
+               because of this. For details see bug #6927 in 
+               W3C public Bugzilla.
 
 =============================================================================*/
 
