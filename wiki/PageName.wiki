@@ -12,4 +12,4 @@ Add your content here.  Format your content with:
   * Headings, paragraphs, and lists
   * Automatic links to other wiki pages
 
-[http://www.lorddemon.net/xqgrammar.png image]
+<img src="http://www.lorddemon.net/xqgrammar.png"/>
