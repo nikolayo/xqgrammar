@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.2
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.0
             
             Supported W3C grammars:
             
@@ -738,7 +738,7 @@ computedConstructor
     | compTextConstructor
     | compCommentConstructor
     | compPIConstructor
-    | {xqVersion==XQUERY_1_1}? => compNamespaceConstructor                // XQuery 1.1
+    | {xqVersion==XQUERY_1_1}? => compNamespaceConstructor        // XQuery 1.1
     ;
 compDocConstructor
     : DOCUMENT LCurly expr RCurly
