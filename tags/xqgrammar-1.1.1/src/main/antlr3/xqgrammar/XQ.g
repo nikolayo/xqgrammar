@@ -337,7 +337,7 @@ windowClause                                                      // XQuery 1.1
     ;
 tumblingWindowClause                                              // XQuery 1.1
     : TUMBLING WINDOW '$' varName typeDeclaration? IN exprSingle 
-      windowStartCondition windowEndCondition
+      windowStartCondition windowEndCondition?
     ;
 slidingWindowClause                                               // XQuery 1.1
     : SLIDING WINDOW  '$' varName typeDeclaration? IN exprSingle 
