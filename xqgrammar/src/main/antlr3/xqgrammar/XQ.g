@@ -98,17 +98,45 @@ tokens {
 }
 
 @members {
-    // pass some token codes to super class at creation time
+    // XQuery version constants
+    public static final int XQUERY_1_0 = 0;
+    public static final int XQUERY_1_1 = 1;
+
+    // Pass some token codes to super class at creation time.
     boolean dummy = setTokenCodes(NCName, Colon);
+
+    // Flags enabling XQuery extensions
+    private boolean update    = true;
+    private boolean scripting = true;
+    private boolean fullText  = true;
+
+    // XQuery version - must be one of XQUERY_1_0 or XQUERY_1_1 
+    // If strict XQuery 1.0 is needed then see also comments to flworExpr.
+    private int     xqVersion = XQUERY_1_1;
+
+    public boolean getUpdate   () {return update   ;}
+    public boolean getScripting() {return scripting;}
+    public boolean getFullText () {return fullText ;}
+    public int     getXqVersion() {return xqVersion;}
+
+    public void setUpdate   (boolean value) {update    = value;}
+    public void setScripting(boolean value) {scripting = value;}
+    public void setFullText (boolean value) {fullText  = value;}
+    public void setXqVersion(int     value) {
+        if(value != XQUERY_1_0 && value != XQUERY_1_1)
+            throw new IllegalArgumentException("Unknown XQuery version.");
+        xqVersion = value;
+    }
 }
 
 module
     : versionDecl? (libraryModule | mainModule)
     ;    
 versionDecl
-    : //XQUERY VERSION StringLiteral (ENCODING StringLiteral)? ';' //XQuery 1.0
-      XQUERY  ((ENCODING StringLiteral {checkEncoding();})         //XQuery 1.1
-    | (VERSION StringLiteral (ENCODING StringLiteral {checkEncoding();})?)) ';'
+    : XQUERY VERSION StringLiteral
+            (ENCODING StringLiteral {checkEncoding();})? ';'
+    | {xqVersion==XQUERY_1_1}? =>
+      XQUERY ENCODING StringLiteral {checkEncoding();}   ';'
     ;
 mainModule
     : prolog queryBody
@@ -142,8 +170,8 @@ setter
     | orderingModeDecl     
     | emptyOrderDecl 
     | copyNamespacesDecl
-    | revalidationDecl                                            // ext:update
-    | decimalFormatDecl                                           // XQuery 1.1
+    | {update}?                => revalidationDecl                // ext:update
+    | {xqVersion==XQUERY_1_1}? => decimalFormatDecl               // XQuery 1.1
     ;
 importDecl
     : schemaImport
@@ -162,7 +190,7 @@ optionDecl
     : DECLARE OPTION qName StringLiteral
     ;
 ftOptionDecl                                                    // ext:fulltext
-    : DECLARE FT_OPTION (ftMatchOption)+
+    : {fullText}? => DECLARE FT_OPTION (ftMatchOption)+
     ;
 orderingModeDecl
     : DECLARE ORDERING (ORDERED | UNORDERED)
@@ -213,10 +241,16 @@ moduleImport
       (AT uriLiteral (',' uriLiteral)*)?
     ;
 varDecl
-    : //DECLARE VARIABLE '$' qName typeDeclaration?               // XQuery 1.0
-      DECLARE (VARIABLE | CONSTANT) '$' qName typeDeclaration? // ext:scripting
-      //((':=' exprSingle) | EXTERNAL)                            // XQuery 1.0
-      ((':=' varValue) | EXTERNAL (':=' varDefaultValue)?)        // XQuery 1.1
+    : DECLARE varOrConst '$' qName typeDeclaration?
+      (':=' exprSingle | EXTERNAL externalDefaultValue)
+    ;
+varOrConst
+    : VARIABLE
+    | {scripting}? => CONSTANT                                 // ext:scripting
+    ;
+externalDefaultValue
+    : {xqVersion==XQUERY_1_1}? => ':=' varDefaultValue            // XQuery 1.1
+    |
     ;
 varValue                                                          // XQuery 1.1
     : exprSingle
@@ -231,14 +265,24 @@ functionDecl
     : // DECLARE FUNCTION fqName '(' paramList? ')'               // XQuery 1.0
       // DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'    // ext:update
       //     (AS sequenceType)? (enclosedExpr | EXTERNAL)
-         DECLARE (DETERMINISTIC | NONDETERMINISTIC)?              // Xquery 1.1
-             (SIMPLE? | UPDATING)                                 // ext:update
+         DECLARE xq11FunModifier? (updateFunModifier | scriptingFunModifier)?
              FUNCTION fqName '(' paramList? ')'
              (AS sequenceType)? (enclosedExpr | EXTERNAL)
-    |    DECLARE (DETERMINISTIC | NONDETERMINISTIC)?              // Xquery 1.1
-             SEQUENTIAL                                        // ext:sctipting
+    |    {scripting}? =>                                       // ext:sctipting 
+         DECLARE xq11FunModifier?
+             SEQUENTIAL
              FUNCTION fqName '(' paramList? ')'
              (AS sequenceType)? (block        | EXTERNAL)
+    ;
+updateFunModifier
+    : {update}? => UPDATING
+    ;
+scriptingFunModifier
+    : {scripting}? => SIMPLE
+    ;
+xq11FunModifier
+    : {xqVersion==XQUERY_1_1}? => DETERMINISTIC
+    | {xqVersion==XQUERY_1_1}? => NONDETERMINISTIC
     ;
 paramList
     : param (',' param)*
@@ -266,8 +310,20 @@ expr
             raiseError("Sequential expression not terminated by ';'.");
         }
       }
-    : exprSingle ((',' | ';' { isSeq = true; }) exprSingle )* 
-      (';' { isSeq = true; seqEnd = true; })?
+    : exprSingle
+      ((',' | ';' {
+          if(!scripting)
+            raiseError("Unexpectd token ';'.");
+          isSeq = true;
+       })
+       exprSingle
+      )*
+      (';' {
+          if(!scripting)
+            raiseError("Unexpectd token ';'.");
+          isSeq = true; seqEnd = true;
+       }
+      )?
     ;
 /*
 // W3C grammar:
@@ -288,55 +344,58 @@ exprSingle
     | typeswitchExpr
     | ifExpr
     | orExpr
-    | insertExpr                                                  // ext:update 
-    | deleteExpr                                                  // ext:update
-    | renameExpr                                                  // ext:update
-    | replaceExpr                                                 // ext:update
-    | transformExpr                                               // ext:update
-    | blockExpr                                                // ext:scripting
-    | assignmentExpr                                           // ext:scripting
-    | exitExpr                                                 // ext:scripting
-    | whileExpr                                                // ext:scripting
-    | tryCatchExpr                                                // XQuery 1.1
+    | {update}?                => insertExpr                      // ext:update 
+    | {update}?                => deleteExpr                      // ext:update
+    | {update}?                => renameExpr                      // ext:update
+    | {update}?                => replaceExpr                     // ext:update
+    | {update}?                => transformExpr                   // ext:update
+    | {scripting}?             => blockExpr                    // ext:scripting
+    | {scripting}?             => assignmentExpr               // ext:scripting
+    | {scripting}?             => exitExpr                     // ext:scripting
+    | {scripting}?             => whileExpr                    // ext:scripting
+    | {xqVersion==XQUERY_1_1}? => tryCatchExpr                    // XQuery 1.1
     ;
 flworExpr
-    : // XQuery 1.0 :
-      //(forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
-      initalClause intermediateClause* returnClause               // XQuery 1.1
+      // XQuery 1.0 :
+      // (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
+      //
+      // The following syntax is somewhat lax for XQuery 1.0.
+      // It could be made strict by validating semantic predicate but
+      // let us first see how this part of XQuery 1.1 syntax evolves
+      // because it seems somewhat lax for XQuery 1.1 too. If 100% 
+      // strict XQuery 1.0 syntax is needed then use the commented 
+      // rule above in addition to setting xqVersion.
+    : initalClause intermediateClause* returnClause               // XQuery 1.1
     ;
 initalClause                                                      // XQuery 1.1
     : forClause
     | letClause
-    | windowClause
+    | {xqVersion==XQUERY_1_1}? => windowClause
     ;
 intermediateClause                                                // XQuery 1.1
     : initalClause
     | whereClause
-    | groupByClause
+    | {xqVersion==XQUERY_1_1}? => groupByClause
     | orderByClause
-    | countClause
+    | {xqVersion==XQUERY_1_1}? => countClause
     ;
 forClause
-    : // XQuery 1.0 :
-      //FOR  '$' varName typeDeclaration? positionalVar? IN exprSingle 
-      //(',' '$' varName typeDeclaration? positionalVar? IN exprSingle)*
-                                                                // ext:fulltext
-      FOR  '$' varName typeDeclaration? positionalVar? ftScoreVar? IN exprSingle 
-      (',' '$' varName typeDeclaration? positionalVar? ftScoreVar? IN exprSingle)*
+    : FOR  '$' varName typeDeclaration? positionalVar? ftScoreVar?
+      IN exprSingle 
+      (',' '$' varName typeDeclaration? positionalVar? ftScoreVar?
+      IN exprSingle)*
     ;
 positionalVar
     : AT '$' varName
     ;
 ftScoreVar                                                      // ext:fulltext
-    : SCORE '$' varName
+    : {fullText}? => SCORE '$' varName
     ;
 letClause
-    : // XQuery 1.0 : 
-      //LET '$' varName typeDeclaration? ':=' exprSingle 
-      //(',' '$' varName typeDeclaration? ':=' exprSingle)*
-                                                                // ext:fulltext
-      ((LET '$' varName typeDeclaration?) | (LET SCORE '$' varName)) 
-          ':=' exprSingle
+    : LET   '$' varName typeDeclaration? ':=' exprSingle
+      (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
+    | {fullText}? =>                                            // ext:fulltext
+      LET SCORE '$' varName ':=' exprSingle
       (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
     ;
 windowClause                                                      // XQuery 1.1
@@ -430,8 +489,11 @@ comparisonExpr
       ftContainsExpr ( (valueComp | generalComp | nodeComp) ftContainsExpr )?
     ;
 ftContainsExpr                                                  // ext:fulltext
-    : rangeExpr (FTCONTAINS ftSelection ftIgnoreOption?)?
+    : rangeExpr ftContainsClause?
     ;
+ftContainsClause
+    :  {fullText}? => FTCONTAINS ftSelection ftIgnoreOption?
+    ; 
 rangeExpr
     : additiveExpr ( TO additiveExpr )?
     ;
@@ -676,7 +738,7 @@ computedConstructor
     | compTextConstructor
     | compCommentConstructor
     | compPIConstructor
-    | compNamespaceConstructor                                    // XQuery 1.1
+    | {xqVersion==XQUERY_1_1}? => compNamespaceConstructor                // XQuery 1.1
     ;
 compDocConstructor
     : DOCUMENT LCurly expr RCurly
@@ -731,7 +793,7 @@ kindTest
     | commentTest
     | textTest
     | anyKindTest
-    | namespaceNodeTest                                           // XQuery 1.1
+    | {xqVersion==XQUERY_1_1}? => namespaceNodeTest               // XQuery 1.1
     ;
 anyKindTest
     : NODE '(' ')'
@@ -1000,7 +1062,8 @@ ftIgnoreOption
 // end of ext:fulltext specific rules
 // start of Xquery 1.1 specific rules
 contextItemDecl
-    : DECLARE CONTEXT ITEM (AS itemType)? 
+    : {xqVersion==XQUERY_1_1}? =>
+      DECLARE CONTEXT ITEM (AS itemType)? 
       ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
     ;
 tryCatchExpr
@@ -1071,6 +1134,8 @@ ncName
     | SCHEMA_ELEMENT
     | TEXT
     | TYPESWITCH
+    // intentionally not gated by semantic predicates
+    // to facilitate writing "future proof" queries
     | WHILE                                                       // ext:update
     | NAMESPACE_NODE                                              // XQuery 1.1
     ;
