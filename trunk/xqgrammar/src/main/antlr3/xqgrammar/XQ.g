@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.0
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.1
             
             Supported W3C grammars:
             
@@ -42,10 +42,10 @@
                Three full text - related tokens are treated as
                keywords and not allowed for use as NCName :
                'ftand', 'ftcontains', 'ftor'. This is a temporary
-               hack. Full Text grammar is allegedly ambiguous and
-               if this is truly the case it will be changed in a 
-               way whcih will make the hack unnecessary. For 
-               details see bug #7247 in W3C public Bugzilla.
+               hack. Full Text grammar is  ambiguous and will
+               be changed in a way whcih will make the hack 
+               unnecessary. For details see bug #7247 in W3C 
+               public Bugzilla.
 
                The grammar has some non LL(*) features which are
                resolved by syntactic predicate in the rule for
@@ -57,11 +57,7 @@
             5. XQuery 1.1
                Working Draft / 3 December 2008
                http://www.w3.org/TR/xquery-11/
-               
-               The only unsupported feature is "outer for". Its 
-               syntax is not LL(*) and is expected to change 
-               because of this. For details see bug #6927 in 
-               W3C public Bugzilla.
+               with added fix for bug #6927 from W3C public Bugzilla.
 
 =============================================================================*/
 
@@ -380,10 +376,13 @@ intermediateClause                                                // XQuery 1.1
     | {xqVersion==XQUERY_1_1}? => countClause
     ;
 forClause
-    : FOR  '$' varName typeDeclaration? positionalVar? ftScoreVar?
-      IN exprSingle 
-      (',' '$' varName typeDeclaration? positionalVar? ftScoreVar?
-      IN exprSingle)*
+    : FOR  '$' varName typeDeclaration? allowingEmpty? positionalVar? 
+      ftScoreVar? IN exprSingle 
+      (',' '$' varName typeDeclaration? allowingEmpty? positionalVar?
+      ftScoreVar? IN exprSingle)*
+    ;
+allowingEmpty                                                     // XQuery 1.1
+    : {xqVersion==XQUERY_1_1}? => ALLOWING EMPTY
     ;
 positionalVar
     : AT '$' varName
@@ -1326,6 +1325,8 @@ fncName
     | SLIDING
     | TUMBLING
     | WHEN
+    | ALLOWING
+  //| EMPTY
     // end of XQUery 1.1 tokens
     ;
 LAngle                  : '<';
@@ -1545,6 +1546,7 @@ PREVIOUS                : 'previous';
 SLIDING                 : 'sliding';
 TUMBLING                : 'tumbling';
 WHEN                    : 'when';
+ALLOWING                : 'allowing';
 // end of XQuery 1.1 tokens
 
 DirCommentConstructor                                            // ws:explicit
