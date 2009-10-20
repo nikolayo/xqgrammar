@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.3
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.4
             
             Supported W3C grammars:
             
@@ -38,21 +38,16 @@
             4. XQuery Full Text 1.0
                Candidate Recommendation / 09 July 2009
                http://www.w3.org/TR/xpath-full-text-10/
-
-               Three full text - related tokens are treated as
-               keywords and not allowed for use as NCName :
-               'ftand', 'ftcontains', 'ftor'. This is a temporary
-               hack. Full Text grammar is  ambiguous and will
-               be changed in a way whcih will make the hack 
-               unnecessary. For details see bug #7247 in W3C 
+               with added fix for bug #7271 from W3C
                public Bugzilla.
 
-               The grammar has some non LL(*) features which are
-               resolved by syntactic predicate in the rule for
-               ftPrimaryWithOptions. The impact is that generated 
-               parser fails to parse some obscure but valid 
-               expressions. For details and updates see bug #7271 
-               in W3C public Bugzilla. 
+               Two full text - related tokens are treated as
+               keywords and not allowed for use as NCName :
+               'ftand', 'ftor'. This is a temporary hack. 
+               Full Text grammar is  ambiguous and will be
+               changed in a way whcih will make the hack 
+               unnecessary. For details see bug #7247 in W3C 
+               public Bugzilla.
 
             5. XQuery 1.1
                Working Draft / 3 December 2008
@@ -186,7 +181,7 @@ optionDecl
     : DECLARE OPTION qName StringLiteral
     ;
 ftOptionDecl                                                    // ext:fulltext
-    : {fullText}? => DECLARE FT_OPTION (ftMatchOption)+
+    : {fullText}? => DECLARE FT_OPTION (USING ftMatchOption)+
     ;
 orderingModeDecl
     : DECLARE ORDERING (ORDERED | UNORDERED)
@@ -491,7 +486,7 @@ ftContainsExpr                                                  // ext:fulltext
     : rangeExpr ftContainsClause?
     ;
 ftContainsClause
-    :  {fullText}? => FTCONTAINS ftSelection ftIgnoreOption?
+    :  {fullText}? => CONTAINS TEXT ftSelection ftIgnoreOption?
     ; 
 rangeExpr
     : additiveExpr ( TO additiveExpr )?
@@ -917,9 +912,6 @@ whileBody
 ftSelection
     : ftOr ftPosFilter*
     ;
-ftWeight
-    : WEIGHT rangeExpr
-    ;
 ftOr
     : ftAnd (FTOR ftAnd)*
     ;
@@ -933,7 +925,10 @@ ftUnaryNot
     : FTNOT? ftPrimaryWithOptions
     ;
 ftPrimaryWithOptions
-    : ftPrimary ((ftMatchOption)=>ftMatchOption)* ftWeight?
+    : ftPrimary (USING ftMatchOption)* ftWeight?
+    ;
+ftWeight
+    : WEIGHT rangeExpr
     ;
 ftPrimary
     : ftWords ftTimes?
@@ -1022,21 +1017,21 @@ ftDiacriticsOption
     | DIACRITICS SENSITIVE
     ;
 ftStemOption
-    : WITH STEMMING
-    | WITHOUT STEMMING
+    :    STEMMING
+    | NO STEMMING
     ;
 ftThesaurusOption
-    : WITH THESAURUS (ftThesaurusID | DEFAULT) 
-    | WITH THESAURUS '(' (ftThesaurusID | DEFAULT) (',' ftThesaurusID)* ')'
-    | WITHOUT THESAURUS
+    :    THESAURUS     (ftThesaurusID | DEFAULT) 
+    |    THESAURUS '(' (ftThesaurusID | DEFAULT) (',' ftThesaurusID)* ')'
+    | NO THESAURUS
     ;
 ftThesaurusID
     : AT uriLiteral (RELATIONSHIP StringLiteral)? (ftRange LEVELS)?
     ;
 ftStopWordOption
-    : WITH         STOP WORDS ftStopWords ftStopWordsInclExcl*
-    | WITHOUT      STOP WORDS
-    | WITH DEFAULT STOP WORDS ftStopWordsInclExcl*
+    :      STOP WORDS ftStopWords ftStopWordsInclExcl*
+    | NO   STOP WORDS
+    | STOP WORDS DEFAULT ftStopWordsInclExcl*
     ;
 ftStopWords
     : AT uriLiteral
@@ -1049,8 +1044,8 @@ ftLanguageOption
     : LANGUAGE StringLiteral
     ;
 ftWildCardOption
-    : WITH    WILDCARDS
-    | WITHOUT WILDCARDS
+    :    WILDCARDS
+    | NO WILDCARDS
     ;
 ftExtensionOption
     : OPTION qName StringLiteral
@@ -1263,16 +1258,17 @@ fncName
     | ENTIRE
     | EXACTLY
     | FROM
-  //| FTAND         // stepExpr not LL(*)
-  //| FTCONTAINS    // stepExpr not LL(*)
+  //| FTAND         // stepExpr ambiguous
+    | CONTAINS
     | FTNOT
     | FT_OPTION
-  //| FTOR          // stepExpr not LL(*)
+  //| FTOR          // stepExpr ambiguous
     | INSENSITIVE
     | LANGUAGE
     | LEVELS
     | LOWERCASE
     | MOST
+    | NO
     | NOT
     | OCCURS
     | PARAGRAPH
@@ -1290,6 +1286,7 @@ fncName
     | THESAURUS
     | TIMES
     | UPPERCASE
+    | USING
     | WEIGHT
     | WILDCARDS
     | WINDOW
@@ -1485,7 +1482,7 @@ ENTIRE                  : 'entire';
 EXACTLY                 : 'exactly';
 FROM                    : 'from';
 FTAND                   : 'ftand';
-FTCONTAINS              : 'ftcontains';
+CONTAINS                : 'contains';
 FTNOT                   : 'ftnot';
 FT_OPTION               : 'ft-option';
 FTOR                    : 'ftor';
@@ -1494,6 +1491,7 @@ LANGUAGE                : 'language';
 LEVELS                  : 'levels';
 LOWERCASE               : 'lowercase';
 MOST                    : 'most';
+NO                      : 'no';
 NOT                     : 'not';
 OCCURS                  : 'occurs';
 PARAGRAPH               : 'paragraph';
@@ -1511,6 +1509,7 @@ STOP                    : 'stop';
 THESAURUS               : 'thesaurus';
 TIMES                   : 'times';
 UPPERCASE               : 'uppercase';
+USING                   : 'using';
 WEIGHT                  : 'weight';
 WILDCARDS               : 'wildcards';
 WINDOW                  : 'window';
