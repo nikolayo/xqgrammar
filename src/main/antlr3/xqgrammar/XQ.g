@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.1
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.4
             
             Supported W3C grammars:
             
