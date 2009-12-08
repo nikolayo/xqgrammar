@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.4
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.5
             
             Supported W3C grammars:
             
@@ -928,7 +928,7 @@ ftPrimaryWithOptions
     : ftPrimary (USING ftMatchOption)* ftWeight?
     ;
 ftWeight
-    : WEIGHT rangeExpr
+    : WEIGHT LCurly rangeExpr RCurly
     ;
 ftPrimary
     : ftWords ftTimes?
@@ -1258,11 +1258,11 @@ fncName
     | ENTIRE
     | EXACTLY
     | FROM
-  //| FTAND         // stepExpr ambiguous
+    | FTAND
     | CONTAINS
     | FTNOT
     | FT_OPTION
-  //| FTOR          // stepExpr ambiguous
+    | FTOR
     | INSENSITIVE
     | LANGUAGE
     | LEVELS
