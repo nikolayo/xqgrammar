@@ -31,28 +31,20 @@
                
             3. XQuery Scripting Extension 1.0
                Working Draft / 3 December 2008 with added fix
-               for bug #6852 from W3C public Bugzilla 
-               ("exit returning" instead of "exit with")
+               for bug #6852 in  W3C public Bugzilla 
                http://www.w3.org/TR/xquery-sx-10/
                
             4. XQuery Full Text 1.0
                Candidate Recommendation / 09 July 2009
                http://www.w3.org/TR/xpath-full-text-10/
-               with added fix for bug #7271 from W3C
-               public Bugzilla.
-
-               Two full text - related tokens are treated as
-               keywords and not allowed for use as NCName :
-               'ftand', 'ftor'. This is a temporary hack. 
-               Full Text grammar is  ambiguous and will be
-               changed in a way whcih will make the hack 
-               unnecessary. For details see bug #7247 in W3C 
-               public Bugzilla.
+               with added fix for bugs #7247 and #7271
+               in W3C public Bugzilla.
 
             5. XQuery 1.1
                Working Draft / 3 December 2008
                http://www.w3.org/TR/xquery-11/
-               with added fix for bug #6927 from W3C public Bugzilla.
+               with added fix for bug #6927 
+               in W3C public Bugzilla.
 
 =============================================================================*/
 
