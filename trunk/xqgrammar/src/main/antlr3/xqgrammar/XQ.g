@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.1
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.6
             
             Supported W3C grammars:
             
@@ -31,28 +31,20 @@
                
             3. XQuery Scripting Extension 1.0
                Working Draft / 3 December 2008 with added fix
-               for bug #6852 from W3C public Bugzilla 
-               ("exit returning" instead of "exit with")
+               for bug #6852 in  W3C public Bugzilla 
                http://www.w3.org/TR/xquery-sx-10/
                
             4. XQuery Full Text 1.0
                Candidate Recommendation / 09 July 2009
                http://www.w3.org/TR/xpath-full-text-10/
-               with added fix for bug #7271 from W3C
-               public Bugzilla.
-
-               Two full text - related tokens are treated as
-               keywords and not allowed for use as NCName :
-               'ftand', 'ftor'. This is a temporary hack. 
-               Full Text grammar is  ambiguous and will be
-               changed in a way whcih will make the hack 
-               unnecessary. For details see bug #7247 in W3C 
-               public Bugzilla.
+               with added fix for bugs #7247 and #7271
+               in W3C public Bugzilla.
 
             5. XQuery 1.1
                Working Draft / 3 December 2008
                http://www.w3.org/TR/xquery-11/
-               with added fix for bug #6927 from W3C public Bugzilla.
+               with added fix for bug #6927 
+               in W3C public Bugzilla.
 
 =============================================================================*/
 
@@ -81,11 +73,47 @@ tokens {
 }
 
 @header {
-    package xqgrammar;
+/*=============================================================================
+
+    Copyright 2009 Nikolay Ognyanov
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+=============================================================================*/
+
+package xqgrammar;
 }
 
 @lexer::header {
-    package xqgrammar;
+/*=============================================================================
+
+    Copyright 2009 Nikolay Ognyanov
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+=============================================================================*/
+
+package xqgrammar;
 }
 
 @members {
@@ -928,7 +956,7 @@ ftPrimaryWithOptions
     : ftPrimary (USING ftMatchOption)* ftWeight?
     ;
 ftWeight
-    : WEIGHT rangeExpr
+    : WEIGHT LCurly rangeExpr RCurly
     ;
 ftPrimary
     : ftWords ftTimes?
@@ -1258,11 +1286,11 @@ fncName
     | ENTIRE
     | EXACTLY
     | FROM
-  //| FTAND         // stepExpr ambiguous
+    | FTAND
     | CONTAINS
     | FTNOT
     | FT_OPTION
-  //| FTOR          // stepExpr ambiguous
+    | FTOR
     | INSENSITIVE
     | LANGUAGE
     | LEVELS
