@@ -1,6 +1,6 @@
 /*=============================================================================
 
-    Copyright 2009 Nikolay Ognyanov
+    Copyright 2009, 2010 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ tokens {
 @header {
 /*=============================================================================
 
-    Copyright 2009 Nikolay Ognyanov
+    Copyright 2009, 2010 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ package xqgrammar;
 @lexer::header {
 /*=============================================================================
 
-    Copyright 2009 Nikolay Ognyanov
+    Copyright 2009, 2010 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
