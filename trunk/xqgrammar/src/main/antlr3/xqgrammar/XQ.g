@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
             
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.1.6
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.0
             
             Supported W3C grammars:
             
@@ -41,9 +41,9 @@
                in W3C public Bugzilla.
 
             5. XQuery 1.1
-               Working Draft / 3 December 2008
+               Working Draft / 15 December 2009
                http://www.w3.org/TR/xquery-11/
-               with added fix for bug #6927 
+               with added fix for bug #8694 
                in W3C public Bugzilla.
 
 =============================================================================*/
@@ -260,7 +260,7 @@ moduleImport
       (AT uriLiteral (',' uriLiteral)*)?
     ;
 varDecl
-    : DECLARE varOrConst '$' qName typeDeclaration?
+    : DECLARE varOrConst '$' varName typeDeclaration?
       (':=' exprSingle | EXTERNAL externalDefaultValue)
     ;
 varOrConst
@@ -284,11 +284,11 @@ functionDecl
     : // DECLARE FUNCTION fqName '(' paramList? ')'               // XQuery 1.0
       // DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'    // ext:update
       //     (AS sequenceType)? (enclosedExpr | EXTERNAL)
-         DECLARE xq11FunModifier? (updateFunModifier | scriptingFunModifier)?
+         DECLARE xq11FunOptions* (updateFunModifier | scriptingFunModifier)?
              FUNCTION fqName '(' paramList? ')'
              (AS sequenceType)? (enclosedExpr | EXTERNAL)
     |    {scripting}? =>                                       // ext:sctipting 
-         DECLARE xq11FunModifier?
+         DECLARE xq11FunOptions*
              SEQUENTIAL
              FUNCTION fqName '(' paramList? ')'
              (AS sequenceType)? (block        | EXTERNAL)
@@ -299,9 +299,16 @@ updateFunModifier
 scriptingFunModifier
     : {scripting}? => SIMPLE
     ;
-xq11FunModifier
-    : {xqVersion==XQUERY_1_1}? => DETERMINISTIC
-    | {xqVersion==XQUERY_1_1}? => NONDETERMINISTIC
+xq11FunOptions
+    : {xqVersion==XQUERY_1_1}? => (privateOption | deterministicOption)
+    ;
+privateOption
+    : PRIVATE
+    | PUBLIC
+    ;
+deterministicOption
+    : DETERMINISTIC
+    | NONDETERMINISTIC
     ;
 paramList
     : param (',' param)*
@@ -372,19 +379,14 @@ exprSingle
     | {scripting}?             => assignmentExpr               // ext:scripting
     | {scripting}?             => exitExpr                     // ext:scripting
     | {scripting}?             => whileExpr                    // ext:scripting
+    | {xqVersion==XQUERY_1_1}? => switchExpr                      // XQuery 1.1
     | {xqVersion==XQUERY_1_1}? => tryCatchExpr                    // XQuery 1.1
     ;
 flworExpr
-      // XQuery 1.0 :
-      // (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
-      //
-      // The following syntax is somewhat lax for XQuery 1.0.
-      // It could be made strict by validating semantic predicate but
-      // let us first see how this part of XQuery 1.1 syntax evolves
-      // because it seems somewhat lax for XQuery 1.1 too. If 100% 
-      // strict XQuery 1.0 syntax is needed then use the commented 
-      // rule above in addition to setting xqVersion.
-    : initalClause intermediateClause* returnClause               // XQuery 1.1
+    : {xqVersion==XQUERY_1_0}? =>
+      (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
+    | {xqVersion==XQUERY_1_1}? =>
+      initalClause intermediateClause* returnClause               // XQuery 1.1
     ;
 initalClause                                                      // XQuery 1.1
     : forClause
@@ -399,10 +401,11 @@ intermediateClause                                                // XQuery 1.1
     | {xqVersion==XQUERY_1_1}? => countClause
     ;
 forClause
-    : FOR  '$' varName typeDeclaration? allowingEmpty? positionalVar? 
-      ftScoreVar? IN exprSingle 
-      (',' '$' varName typeDeclaration? allowingEmpty? positionalVar?
-      ftScoreVar? IN exprSingle)*
+    : FOR  forBinding (',' forBinding)*
+    ;
+forBinding
+    : '$' varName typeDeclaration? allowingEmpty? positionalVar? ftScoreVar? 
+      IN exprSingle
     ;
 allowingEmpty                                                     // XQuery 1.1
     : {xqVersion==XQUERY_1_1}? => ALLOWING EMPTY
@@ -414,11 +417,10 @@ ftScoreVar                                                      // ext:fulltext
     : {fullText}? => SCORE '$' varName
     ;
 letClause
-    : LET   '$' varName typeDeclaration? ':=' exprSingle
-      (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
-    | {fullText}? =>                                            // ext:fulltext
-      LET SCORE '$' varName ':=' exprSingle
-      (','(('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle)*
+    : LET letBinding (',' letBinding)*
+    ;
+letBinding
+    : (('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle
     ;
 windowClause                                                      // XQuery 1.1
     : FOR (tumblingWindowClause | slidingWindowClause)
@@ -647,7 +649,11 @@ wildcard                                                         // ws:explicit
     | '*'    Colon {noSpaceBefore();} ncName {noSpaceBefore();}
     ;
 filterExpr
-    : primaryExpr predicateList
+    : primaryExpr filterExprSuffix*
+    ;
+filterExprSuffix
+    : predicate
+    | {xqVersion==XQUERY_1_1}? => dynamicFunctionInvocation
     ;
 predicateList
     : predicate*
@@ -664,6 +670,7 @@ primaryExpr
     | orderedExpr
     | unorderedExpr
     | constructor
+    | {xqVersion==XQUERY_1_1}? => functionItemExpr
     ;
 literal
     : numericLiteral
@@ -801,6 +808,8 @@ itemType
     : kindTest
     | (ITEM '(' ')')
     | atomicType
+    | {xqVersion==XQUERY_1_1}? => functionTest
+    | {xqVersion==XQUERY_1_1}? => parenthesizedItemType
     ;
 atomicType
     : qName
@@ -814,6 +823,7 @@ kindTest
     | piTest
     | commentTest
     | textTest
+    | namespaceNodeTest
     | anyKindTest
     | {xqVersion==XQUERY_1_1}? => namespaceNodeTest               // XQuery 1.1
     ;
@@ -1088,6 +1098,28 @@ contextItemDecl
       DECLARE CONTEXT ITEM (AS itemType)? 
       ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
     ;
+functionItemExpr
+    : literalFunctionItem
+    | inlineFunction
+    ;
+literalFunctionItem
+    : qName '#' IntegerLiteral
+    ;
+inlineFunction
+    : FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
+    ;
+dynamicFunctionInvocation
+    : '(' (exprSingle (',' exprSingle)*)? ')'
+    ;
+switchExpr
+    : SWITCH '(' expr ')' switchCaseClause+ DEFAULT RETURN exprSingle
+    ;
+switchCaseClause
+    : ( CASE switchCaseOperand)+ RETURN exprSingle
+    ;
+switchCaseOperand
+    : exprSingle
+    ;
 tryCatchExpr
     : tryClause catchClause+
     ;
@@ -1130,6 +1162,19 @@ uriExpr
 namespaceNodeTest
     : NAMESPACE_NODE '(' ')'
     ;
+functionTest
+    : anyFunctionTest
+    | typedFunctionTest
+    ;
+anyFunctionTest
+    : FUNCTION '(' '*' ')'
+    ;
+typedFunctionTest
+    : FUNCTION '(' (sequenceType (',' sequenceType)*)? ')' AS sequenceType
+    ;
+parenthesizedItemType
+    : '(' itemType ')'
+    ;
 // end of XQuery 1.1 specific rules
 // End of W3C grammars.
 
@@ -1159,7 +1204,9 @@ ncName
     // intentionally not gated by semantic predicates
     // to facilitate writing "future proof" queries
     | WHILE                                                       // ext:update
+    | FUNCTION                                                    // XQuery 1.1
     | NAMESPACE_NODE                                              // XQuery 1.1
+    | SWITCH                                                      // XQuery 1.1
     ;
 fncName
     : NCName
@@ -1197,7 +1244,6 @@ fncName
     | FOLLOWING
     | FOLLOWING_SIBLING
     | FOR
-    | FUNCTION
     | GE
     | GREATEST
     | GT
@@ -1347,6 +1393,8 @@ fncName
     | NEXT
     | ONLY
     | PREVIOUS
+    | PRIVATE
+    | PUBLIC
     | SLIDING
     | TUMBLING
     | WHEN
@@ -1551,7 +1599,10 @@ CONTEXT                 : 'context';
 DETERMINISTIC           : 'deterministic';
 NAMESPACE_NODE          : 'namespace-node';
 NONDETERMINISTIC        : 'nondeterministic';
+PRIVATE                 : 'private';
+PUBLIC                  : 'public';
 TRY                     : 'try';
+SWITCH                  : 'switch';
 // tokens related to decimal formats
 DECIMAL_FORMAT          : 'decimal-format';
 DECIMAL_SEPARATOR       : 'decimal-separator';
