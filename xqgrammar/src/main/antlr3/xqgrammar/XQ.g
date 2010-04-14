@@ -261,7 +261,7 @@ varDecl
       (':=' exprSingle | EXTERNAL externalDefaultValue)
     ;
 varModifier
-    : { scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
+    : {scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
     ;
 externalDefaultValue
     : {xqVersion==XQUERY_1_1}? => ':=' varDefaultValue            // XQuery 1.1
