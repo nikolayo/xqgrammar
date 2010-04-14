@@ -16,24 +16,23 @@
 
 =============================================================================*/
 /*=============================================================================
-            
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.2.0
-            
+
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.3.0
+
             Supported W3C grammars:
-            
+
             1. XQuery 1.0 
                Recommendation / 23 January 2007
                http://www.w3.org/TR/xquery/
-               
+
             2. XQuery Update Facility 1.0
                Candidate Recommendation / 09 June 2009
                http://www.w3.org/TR/xquery-update-10/
-               
+
             3. XQuery Scripting Extension 1.0
-               Working Draft / 3 December 2008 with added fix
-               for bug #6852 in  W3C public Bugzilla 
+               Working Draft / 8 April 2010
                http://www.w3.org/TR/xquery-sx-10/
-               
+
             4. XQuery Full Text 1.0
                Candidate Recommendation / 28 January 2010
                http://www.w3.org/TR/xpath-full-text-10/
@@ -258,12 +257,11 @@ moduleImport
       (AT uriLiteral (',' uriLiteral)*)?
     ;
 varDecl
-    : DECLARE varOrConst '$' varName typeDeclaration?
+    : DECLARE varType? VARIABLE '$' varName typeDeclaration?
       (':=' exprSingle | EXTERNAL externalDefaultValue)
     ;
-varOrConst
-    : VARIABLE
-    | {scripting}? => CONSTANT                                 // ext:scripting
+varType
+    : { scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
     ;
 externalDefaultValue
     : {xqVersion==XQUERY_1_1}? => ':=' varDefaultValue            // XQuery 1.1
@@ -321,47 +319,15 @@ queryBody
     : expr
     ;
 expr
-      // : exprSingle (',' exprSingle)* ;                          //XQuery 1.0
-      // Some hand crafted  parsing since                      // ext:scripting
-      // original W3C grammar is not LL(*)
-      @init
-      {
-        boolean isSeq  = false;
-        boolean seqEnd = false;
-      }
-      @after {
-        if(isSeq && !seqEnd) {
-            raiseError("Sequential expression not terminated by ';'.");
-        }
-      }
-    : exprSingle
-      ((',' | ';' {
-          if(!scripting)
-            raiseError("Unexpectd token ';'.");
-          isSeq = true;
-       })
-       exprSingle
-      )*
-      (';' {
-          if(!scripting)
-            raiseError("Unexpectd token ';'.");
-          isSeq = true; seqEnd = true;
-       }
-      )?
+    : { scripting}? => applyExpr
+    | {!scripting}? => concatExpr
     ;
-/*
-// W3C grammar:
-expr 
-    : applyExpr                                                // ext:scripting
-    | concatExpr
+applyExpr
+    : concatExpr (';' (concatExpr ';')*)?
     ;
-applyExpr                                                      // ext:scripting
-    : (concatExpr ';')+
-    ;
-concatExpr                                                     // ext:scripting
+concatExpr
     : exprSingle (',' exprSingle)*
     ;
-*/
 exprSingle
     : flworExpr
     | quantifiedExpr
@@ -711,7 +677,8 @@ directConstructor
     ;
 dirElemConstructor                                               // ws:explicit
     : LAngle  { enterDirXml (); } 
-      qName   { pushElemName(); }
+      qName   {noSpaceBefore(); 
+               pushElemName (); }
       dirAttributeList 
       (RClose { popElemName (); }
         | (RAngle dirElemContent* LClose qName {matchElemName();} S? RAngle)
@@ -916,7 +883,7 @@ transformExpr
 // end   of ext:update    specific rules
 // start of ext:scripting specific rules
 assignmentExpr
-    : SET '$' varName ':=' exprSingle
+    : '$' varName ':=' exprSingle
     ;
 blockExpr
     : BLOCK block
@@ -1312,11 +1279,11 @@ fncName
     // end   of ext:update    tokens
     // start of ext:scripting tokens
     | BLOCK
-    | CONSTANT
+    | ASSIGNABLE
+    | UNASSIGNABLE
     | EXIT
     | RETURNING
     | SEQUENTIAL
-    | SET
     // WHILE
     // end   of ext:scripting tokens
     // start of ext:fulltext  tokens
@@ -1537,11 +1504,11 @@ WITH                    : 'with';
 // end   of ext:update    tokens
 // start of ext:scripting tokens
 BLOCK                   : 'block';
-CONSTANT                : 'constant';
+ASSIGNABLE              : 'assignable';
+UNASSIGNABLE            : 'unassignable';
 EXIT                    : 'exit';
 SEQUENTIAL              : 'sequential';
 RETURNING               : 'returning';
-SET                     : 'set';
 WHILE                   : 'while';
 // end   of ext:scripting tokens
 // start of ext:fulltext  tokens
