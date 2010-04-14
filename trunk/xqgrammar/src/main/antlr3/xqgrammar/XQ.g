@@ -257,10 +257,10 @@ moduleImport
       (AT uriLiteral (',' uriLiteral)*)?
     ;
 varDecl
-    : DECLARE varType? VARIABLE '$' varName typeDeclaration?
+    : DECLARE varModifier? VARIABLE '$' varName typeDeclaration?
       (':=' exprSingle | EXTERNAL externalDefaultValue)
     ;
-varType
+varModifier
     : { scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
     ;
 externalDefaultValue
