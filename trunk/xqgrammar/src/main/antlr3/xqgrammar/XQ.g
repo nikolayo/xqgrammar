@@ -1166,8 +1166,6 @@ ncName
     | SCHEMA_ELEMENT
     | TEXT
     | TYPESWITCH
-    // intentionally not gated by semantic predicates
-    // to facilitate writing "future proof" queries
     | WHILE                                                    // ext:scripting
     | FUNCTION                                                    // XQuery 1.1
     | NAMESPACE_NODE                                              // XQuery 1.1
