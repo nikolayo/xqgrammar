@@ -1168,7 +1168,7 @@ ncName
     | TYPESWITCH
     // intentionally not gated by semantic predicates
     // to facilitate writing "future proof" queries
-    | WHILE                                                       // ext:update
+    | WHILE                                                    // ext:scripting
     | FUNCTION                                                    // XQuery 1.1
     | NAMESPACE_NODE                                              // XQuery 1.1
     | SWITCH                                                      // XQuery 1.1
