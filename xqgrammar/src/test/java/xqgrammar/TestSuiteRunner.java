@@ -38,7 +38,11 @@ I. XQuery : 100% pass with the following remarks:
 
    Queries/XQuery/Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq
 
-II.  XQuery Update    : 100% pass.
+II.  XQuery Update    : 100% pass
+     Remark:
+     As of the time of this writing there is a bug in the catalog of the
+     test suite (see bug #9531 in W3C public Bugzilla). 100% pass is
+     achieved if this bug is fixed.
 
 III. XQuery Free Text : 100% pass.
 
@@ -126,6 +130,11 @@ public class TestSuiteRunner
                                                         "/home/nikolay/Work/XQFTTS";
     private static final String XQGTS_BASE          =
                                                         "/home/nikolay/Work/XQGTS";
+    private static final String ZQTS_BASE           =
+                                                        "/home/nikolay/Projects/tribe/"
+                                                                + "zulu/src/main/resources/"
+                                                                + "com/travelstoremaker/tribe/zulu";
+
     // List of base paths for all test suites to be run.
     private final List<String>  testSuitesBasePaths = new ArrayList<String>();
 
@@ -143,6 +152,7 @@ public class TestSuiteRunner
         testSuitesBasePaths.add(XQUTS_BASE);
         testSuitesBasePaths.add(XQFTTS_BASE);
         testSuitesBasePaths.add(XQGTS_BASE);
+        testSuitesBasePaths.add(ZQTS_BASE);
 
         failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
         passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
