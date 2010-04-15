@@ -132,8 +132,7 @@ public class TestSuiteRunner
                                                         "/home/nikolay/Work/XQGTS";
     private static final String ZQTS_BASE           =
                                                         "/home/nikolay/Projects/tribe/"
-                                                                + "zulu/src/main/resources/"
-                                                                + "com/travelstoremaker/tribe/zulu";
+                                                                + "zulu/src/main/resources/";
 
     // List of base paths for all test suites to be run.
     private final List<String>  testSuitesBasePaths = new ArrayList<String>();
