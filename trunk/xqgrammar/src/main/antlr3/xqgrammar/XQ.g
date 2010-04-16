@@ -146,7 +146,7 @@ package xqgrammar;
 }
 
 module
-    : versionDecl? (libraryModule | mainModule)
+    : versionDecl? (libraryModule | mainModule) EOF
     ;    
 versionDecl
     : XQUERY VERSION StringLiteral
