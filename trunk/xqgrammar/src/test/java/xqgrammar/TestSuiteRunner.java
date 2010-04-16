@@ -39,10 +39,6 @@ I. XQuery : 100% pass with the following remarks:
    Queries/XQuery/Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq
 
 II.  XQuery Update    : 100% pass
-     Remark:
-     As of the time of this writing there is a bug in the catalog of the
-     test suite (see bug #9531 in W3C public Bugzilla). 100% pass is
-     achieved if this bug is fixed.
 
 III. XQuery Free Text : 100% pass.
 
@@ -64,13 +60,6 @@ III. XQuery Free Text : 100% pass.
    Custom catalog overrides xml catalog if both are present.
 
 
-===============================================================================
-
-                                   Credits
-                                   =======
-   Test suite xml catalog scan code is based on ideas of Dimitriy Shabanov
-   (shabanovd@gmail.com)
-
 =============================================================================*/
 
 package xqgrammar;
@@ -86,7 +75,9 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -175,7 +166,7 @@ public class TestSuiteRunner
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
         System.out.println("Loading tests ...");
-        List<XQTest> tests = loadTests(testSuiteBasePath);
+        Collection<XQTest> tests = loadTests(testSuiteBasePath);
         System.out.println("Running tests ...");
         long cpuStart = threadMXBean.getCurrentThreadCpuTime();
         for (XQTest xqTest : tests) {
@@ -210,7 +201,7 @@ public class TestSuiteRunner
         return numErrors == 0;
     }
 
-    private List<XQTest> loadTests(String testSuiteBasePath)
+    private Collection<XQTest> loadTests(String testSuiteBasePath)
         throws IOException, ParserConfigurationException, SAXException
 
     {
@@ -225,12 +216,12 @@ public class TestSuiteRunner
         }
     }
 
-    private List<XQTest> scanCustomCatalog(File basePathFile,
-                                           File customCatalogFile)
+    private Collection<XQTest> scanCustomCatalog(File basePathFile,
+                                                 File customCatalogFile)
         throws IOException
 
     {
-        List<XQTest> tests = new ArrayList<XQTest>();
+        Set<XQTest> tests = new LinkedHashSet<XQTest>();
 
         BufferedReader testListReader =
             new BufferedReader(new FileReader(customCatalogFile));
@@ -260,7 +251,7 @@ public class TestSuiteRunner
 
     }
 
-    private List<XQTest> scanW3cCatalog(File basePathFile)
+    private Set<XQTest> scanW3cCatalog(File basePathFile)
         throws ParserConfigurationException, SAXException, IOException
 
     {
@@ -357,16 +348,17 @@ public class TestSuiteRunner
     private static class CatalogContentHandler
         extends DefaultHandler
     {
-        private final File         basePathFile;
-        private final List<XQTest> tests = new ArrayList<XQTest>();
-        private XQTest             test;
+        private final File        basePathFile;
+        private final Set<XQTest> tests           = new LinkedHashSet<XQTest>();
+        private boolean           failureExpected = false;
+        private String            path            = null;
 
         public CatalogContentHandler(File basePathFile)
         {
             this.basePathFile = basePathFile;
         }
 
-        public List<XQTest> getTests()
+        public Set<XQTest> getTests()
         {
             return tests;
         }
@@ -377,16 +369,16 @@ public class TestSuiteRunner
             throws SAXException
         {
             if (localName.equals(TEST_CASE)) {
-                test = new XQTest();
-                test.setPath(atts.getValue(FILE_PATH_ATTRIBUTE));
-                test.setFailureExpected(PARSE_ERROR.equals(atts
-                    .getValue(SCENARIO_ATTRIBUTE)));
-
+                path = atts.getValue(FILE_PATH_ATTRIBUTE);
+                failureExpected =
+                    PARSE_ERROR.equals(atts.getValue(SCENARIO_ATTRIBUTE));
             }
             else if (localName.equals(QUERY)) {
-                if (test == null)
+                if (path == null)
                     return;
-
+                XQTest test = new XQTest();
+                test.setPath(path);
+                test.setFailureExpected(failureExpected);
                 File queryFile =
                     new File(new File(new File(basePathFile, QUERIES_BASE),
                                       test.getPath()), atts
@@ -402,10 +394,11 @@ public class TestSuiteRunner
                     testReader.close();
                     test.setQuery(query);
                     test.setLength(len);
+                    tests.add(test);
                 }
                 catch (FileNotFoundException e) {
                     // If your want to see missing test files:
-                    // System.out.println("Missing test file: " + test.getPath());
+                    //System.out.println("Missing test file: " + test.getPath());
                     test = null;
                     // The following throw statement is disabled because
                     // it does happen at least while test suite is under 
@@ -414,7 +407,7 @@ public class TestSuiteRunner
                     // throw new SAXException(e);
                 }
                 catch (IOException e) {
-                    test = null;
+                    path = null;
                     throw new SAXException(e);
                 }
             }
@@ -425,9 +418,7 @@ public class TestSuiteRunner
             throws SAXException
         {
             if (localName.equals(TEST_CASE)) {
-                if (test != null) {
-                    tests.add(test);
-                }
+                path = null;
             }
         }
     }
