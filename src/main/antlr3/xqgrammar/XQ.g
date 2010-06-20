@@ -788,7 +788,6 @@ kindTest
     | piTest
     | commentTest
     | textTest
-    | namespaceNodeTest
     | anyKindTest
     | {xqVersion==XQUERY_1_1}? => namespaceNodeTest               // XQuery 1.1
     ;
@@ -1769,3 +1768,19 @@ Letter
     | '\uAC00'..'\uD7A3' | '\u4E00'..'\u9FA5' | '\u3007'
     | '\u3021'..'\u3029'
 ;
+// The following declarations are not really needed since the tokens
+// are only parsed by the direct xml parser but declaring here dummy
+// fragments helps to avoid ANTLR warnings.
+fragment ElementContentChar
+    :
+    ;
+fragment CDataSection
+    :
+    ;
+fragment QuotAttrContentChar
+    :
+    ;
+fragment AposAttrContentChar
+    :
+    ;
+
