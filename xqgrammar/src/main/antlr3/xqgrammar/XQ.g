@@ -523,9 +523,6 @@ fncName
   //| EMPTY
     // end of XQUery 1.1 tokens
     ;
-literal
-    : IntegerLiteral | DecimalLiteral | DoubleLiteral | StringLiteral
-    ;
 
 LAngle                  : '<';
 RAngle                  : '>';
