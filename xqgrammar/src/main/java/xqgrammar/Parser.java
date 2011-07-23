@@ -49,8 +49,35 @@ public class Parser
     private Stack<Integer>     elemStack    = new Stack<Integer>();
     private boolean            breakOnError = true;
     @SuppressWarnings("all")
-    private int                NCName;
-    private int                Colon;
+    private static int                NCName;
+    private static int                Colon;
+
+    
+    public static final int XQUERY_1_0 = 0;
+    public static final int XQUERY_1_1 = 1;
+
+    // Flags enabling XQuery extensions
+    protected static boolean update    = true;
+    protected static boolean scripting = true;
+    protected static boolean fullText  = true;
+
+    // XQuery version - must be one of XQUERY_1_0 or XQUERY_1_1 
+    // If strict XQuery 1.0 is needed then see also comments to flworExpr.
+    protected static int     xqVersion = XQUERY_1_1;
+
+    public static boolean getUpdate   () {return update   ;}
+    public static boolean getScripting() {return scripting;}
+    public static boolean getFullText () {return fullText ;}
+    public static int     getXqVersion() {return xqVersion;}
+
+    public static void setUpdate   (boolean value) {update    = value;}
+    public static void setScripting(boolean value) {scripting = value;}
+    public static void setFullText (boolean value) {fullText  = value;}
+    public static void setXqVersion(int     value) {
+        if(value != XQUERY_1_0 && value != XQUERY_1_1)
+            throw new IllegalArgumentException("Unknown XQuery version.");
+        xqVersion = value;
+    }
 
     public Parser(XQTokenStream input)
     {
