@@ -119,7 +119,7 @@ ftWords
     : ftWordsValue ftAnyAllOption?
     ;
 ftWordsValue
-    : literal
+    : StringLiteral
     | LCurly expr RCurly
     ;
 ftExtensionSelection
