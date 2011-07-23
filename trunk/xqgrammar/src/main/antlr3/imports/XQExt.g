@@ -272,22 +272,10 @@ tryTargetExpr
     : expr
     ;
 catchClause
-    : CATCH catchErrorList catchVars? LCurly expr RCurly
+    : CATCH catchErrorList LCurly expr RCurly
     ;
 catchErrorList
     : nameTest ('|' nameTest)*
-    ;
-catchVars
-    : '(' catchErrorCode (',' catchErrorDesc (',' catchErrorVal)?)? ')'
-    ;
-catchErrorCode
-    : '$' varName
-    ;
-catchErrorDesc
-    : '$' varName
-    ;
-catchErrorVal
-    : '$' varName
     ;
 compNamespaceConstructor
     : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr? RCurly
