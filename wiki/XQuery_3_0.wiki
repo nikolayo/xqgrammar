@@ -1,3 +1,0 @@
-==XQuery 3.0==
-
-XQuery 3.0 working draft is out (http://www.w3.org/TR/xquery-30/). Unfortunately related changes cause ANLR to generate a Java parser which is too big for the Java compiler to handle. There will be need for some serious restructuring involving composite grammars. And that will take some time...
