@@ -113,13 +113,13 @@ windowVars                                                        // XQuery 1.1
       (PREVIOUS '$' previousItem)? (NEXT '$' nextItem)?
     ;
 currentItem                                                       // XQuery 1.1
-    : qName
+    : eQName
     ;
 previousItem                                                      // XQuery 1.1
-    : qName
+    : eQName
     ;
 nextItem                                                          // XQuery 1.1
-    : qName
+    : eQName
     ;
 countClause                                                       // XQuery 1.1
     : COUNT '$' varName
@@ -255,5 +255,5 @@ extensionExpr
     ;
 //W3C grammar :
 //pragma                                                         // ws:explicit
-//  : '(#' S? qName (S PragmaContents)? '#)'
+//  : '(#' S? eQName (S PragmaContents)? '#)'
 //  ;
