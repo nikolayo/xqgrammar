@@ -37,11 +37,9 @@
                Candidate Recommendation / 28 January 2010
                http://www.w3.org/TR/xpath-full-text-10/
 
-            5. XQuery 1.1
-               Working Draft / 15 December 2009
-               http://www.w3.org/TR/xquery-11/
-               with added fix for bug #8694 
-               in W3C public Bugzilla.
+            5. XQuery 3.0
+               Working Draft / 14 June 2011
+               http://www.w3.org/TR/xquery-30/
 
 =============================================================================*/
 
