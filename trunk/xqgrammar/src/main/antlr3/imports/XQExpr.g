@@ -48,26 +48,26 @@ exprSingle
     | {scripting}?             => assignmentExpr               // ext:scripting
     | {scripting}?             => exitExpr                     // ext:scripting
     | {scripting}?             => whileExpr                    // ext:scripting
-    | {xqVersion==XQUERY_1_1}? => switchExpr                      // XQuery 1.1
-    | {xqVersion==XQUERY_1_1}? => tryCatchExpr                    // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => switchExpr                      // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => tryCatchExpr                    // XQuery 1.1
     ;
 flworExpr
     : {xqVersion==XQUERY_1_0}? =>
       (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
-    | {xqVersion==XQUERY_1_1}? =>
+    | {xqVersion==XQUERY_3_0}? =>
       initalClause intermediateClause* returnClause               // XQuery 1.1
     ;
 initalClause                                                      // XQuery 1.1
     : forClause
     | letClause
-    | {xqVersion==XQUERY_1_1}? => windowClause
+    | {xqVersion==XQUERY_3_0}? => windowClause
     ;
 intermediateClause                                                // XQuery 1.1
     : initalClause
     | whereClause
-    | {xqVersion==XQUERY_1_1}? => groupByClause
+    | {xqVersion==XQUERY_3_0}? => groupByClause
     | orderByClause
-    | {xqVersion==XQUERY_1_1}? => countClause
+    | {xqVersion==XQUERY_3_0}? => countClause
     ;
 forClause
     : FOR  forBinding (',' forBinding)*
@@ -77,7 +77,7 @@ forBinding
       IN exprSingle
     ;
 allowingEmpty                                                     // XQuery 1.1
-    : {xqVersion==XQUERY_1_1}? => ALLOWING EMPTY
+    : {xqVersion==XQUERY_3_0}? => ALLOWING EMPTY
     ;
 positionalVar
     : AT '$' varName

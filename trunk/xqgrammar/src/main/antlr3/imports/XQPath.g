@@ -88,7 +88,7 @@ filterExpr
     ;
 filterExprSuffix
     : predicate
-    | {xqVersion==XQUERY_1_1}? => dynamicFunctionInvocation
+    | {xqVersion==XQUERY_3_0}? => dynamicFunctionInvocation
     ;
 predicateList
     : predicate*
@@ -105,7 +105,7 @@ primaryExpr
     | orderedExpr
     | unorderedExpr
     | constructor
-    | {xqVersion==XQUERY_1_1}? => functionItemExpr
+    | {xqVersion==XQUERY_3_0}? => functionItemExpr
     ;
 literal
     : numericLiteral
@@ -203,7 +203,7 @@ computedConstructor
     | compTextConstructor
     | compCommentConstructor
     | compPIConstructor
-    | {xqVersion==XQUERY_1_1}? => compNamespaceConstructor        // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => compNamespaceConstructor        // XQuery 1.1
     ;
 compDocConstructor
     : DOCUMENT LCurly expr RCurly
@@ -244,8 +244,8 @@ itemType
     : kindTest
     | (ITEM '(' ')')
     | atomicType
-    | {xqVersion==XQUERY_1_1}? => functionTest
-    | {xqVersion==XQUERY_1_1}? => parenthesizedItemType
+    | {xqVersion==XQUERY_3_0}? => functionTest
+    | {xqVersion==XQUERY_3_0}? => parenthesizedItemType
     ;
 atomicType
     : eQName
@@ -260,7 +260,7 @@ kindTest
     | commentTest
     | textTest
     | anyKindTest
-    | {xqVersion==XQUERY_1_1}? => namespaceNodeTest               // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => namespaceNodeTest               // XQuery 1.1
     ;
 anyKindTest
     : NODE '(' ')'

@@ -125,7 +125,7 @@ module
 versionDecl
     : XQUERY VERSION StringLiteral
             (ENCODING StringLiteral {checkEncoding();})? ';'
-    | {xqVersion==XQUERY_1_1}? =>
+    | {xqVersion==XQUERY_3_0}? =>
       XQUERY ENCODING StringLiteral {checkEncoding();}   ';'
     ;
 mainModule
@@ -160,7 +160,7 @@ setter
     | emptyOrderDecl 
     | copyNamespacesDecl
     | {update}?                => revalidationDecl                // ext:update
-    | {xqVersion==XQUERY_1_1}? => decimalFormatDecl               // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => decimalFormatDecl               // XQuery 1.1
     ;
 importDecl
     : schemaImport
@@ -243,7 +243,7 @@ varModifier
     : {scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
     ;
 externalDefaultValue
-    : {xqVersion==XQUERY_1_1}? => ':=' varDefaultValue            // XQuery 1.1
+    : {xqVersion==XQUERY_3_0}? => ':=' varDefaultValue            // XQuery 1.1
     |
     ;
 varValue                                                          // XQuery 1.1

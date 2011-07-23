@@ -54,16 +54,16 @@ public class Parser
 
     
     public static final int XQUERY_1_0 = 0;
-    public static final int XQUERY_1_1 = 1;
+    public static final int XQUERY_3_0 = 1;
 
     // Flags enabling XQuery extensions
     protected static boolean update    = true;
     protected static boolean scripting = true;
     protected static boolean fullText  = true;
 
-    // XQuery version - must be one of XQUERY_1_0 or XQUERY_1_1 
+    // XQuery version - must be one of XQUERY_1_0 or XQUERY_3_0 
     // If strict XQuery 1.0 is needed then see also comments to flworExpr.
-    protected static int     xqVersion = XQUERY_1_1;
+    protected static int     xqVersion = XQUERY_3_0;
 
     public static boolean getUpdate   () {return update   ;}
     public static boolean getScripting() {return scripting;}
@@ -74,7 +74,7 @@ public class Parser
     public static void setScripting(boolean value) {scripting = value;}
     public static void setFullText (boolean value) {fullText  = value;}
     public static void setXqVersion(int     value) {
-        if(value != XQUERY_1_0 && value != XQUERY_1_1)
+        if(value != XQUERY_1_0 && value != XQUERY_3_0)
             throw new IllegalArgumentException("Unknown XQuery version.");
         xqVersion = value;
     }

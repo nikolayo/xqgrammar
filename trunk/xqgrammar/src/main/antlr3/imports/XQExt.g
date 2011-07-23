@@ -236,7 +236,7 @@ ftIgnoreOption
 // end of ext:fulltext specific rules
 // start of Xquery 1.1 specific rules
 contextItemDecl
-    : {xqVersion==XQUERY_1_1}? =>
+    : {xqVersion==XQUERY_3_0}? =>
       DECLARE CONTEXT ITEM (AS itemType)? 
       ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
     ;
