@@ -54,7 +54,7 @@ public class Parser
 
     
     public static final int XQUERY_1_0 = 0;
-    public static final int XQUERY_3_0 = 1;
+    public static final int XQUERY_3_0 = 3;
 
     // Flags enabling XQuery extensions
     protected static boolean update    = true;
