@@ -177,7 +177,7 @@ defaultNamespaceDecl
     : DECLARE DEFAULT (ELEMENT | FUNCTION) NAMESPACE uriLiteral
     ;
 optionDecl
-    : DECLARE OPTION qName StringLiteral
+    : DECLARE OPTION eQName StringLiteral
     ;
 ftOptionDecl                                                    // ext:fulltext
     : {fullText}? => DECLARE FT_OPTION (USING ftMatchOption)+
@@ -192,7 +192,7 @@ copyNamespacesDecl
     : DECLARE COPY_NAMESPACES preserveMode ',' inheritMode
     ;
 decimalFormatDecl                                                 // XQuery 1.1
-    : DECLARE ((DECIMAL_FORMAT qName) | (DEFAULT DECIMAL_FORMAT))
+    : DECLARE ((DECIMAL_FORMAT eQName) | (DEFAULT DECIMAL_FORMAT))
       (dfPropertyName SymEq StringLiteral)*
     ;
 dfPropertyName                                                    // XQuery 1.1
@@ -251,16 +251,16 @@ constructionDecl
     : DECLARE CONSTRUCTION (STRIP | PRESERVE)
     ;
 functionDecl
-    : // DECLARE FUNCTION fqName '(' paramList? ')'               // XQuery 1.0
-      // DECLARE UPDATING? FUNCTION fqName '('  paramList? ')'    // ext:update
+    : // DECLARE FUNCTION efQName '(' paramList? ')'               // XQuery 1.0
+      // DECLARE UPDATING? FUNCTION efQName '('  paramList? ')'    // ext:update
       //     (AS sequenceType)? (enclosedExpr | EXTERNAL)
          DECLARE xq11FunOptions* (updateFunModifier | scriptingFunModifier)?
-             FUNCTION fqName '(' paramList? ')'
+             FUNCTION efQName '(' paramList? ')'
              (AS sequenceType)? (enclosedExpr | EXTERNAL)
     |    {scripting}? =>                                       // ext:sctipting 
          DECLARE xq11FunOptions*
              SEQUENTIAL
-             FUNCTION fqName '(' paramList? ')'
+             FUNCTION efQName '(' paramList? ')'
              (AS sequenceType)? (block        | EXTERNAL)
     ;
 updateFunModifier
@@ -284,7 +284,7 @@ paramList
     : param (',' param)*
     ;
 param
-    : '$' qName typeDeclaration?
+    : '$' eQName typeDeclaration?
     ;
 enclosedExpr
     : LCurly expr RCurly
@@ -294,9 +294,22 @@ queryBody
     ;
 
 // End of W3C grammars.
-
+eQName
+    : qName
+    | uriQualifiedName
+    ;
+uriQualifiedName
+    : uriLiteral Colon {noSpaceBefore();} ncName {noSpaceBefore();}
+    ;
 qName
     : ncName (Colon {noSpaceBefore();} ncName {noSpaceBefore();})?
+    ;
+uriLiteral
+    : StringLiteral
+    ;
+efQName
+    : fqName
+    | uriQualifiedName
     ;
 fqName
     : ncName  Colon {noSpaceBefore();} ncName {noSpaceBefore();}

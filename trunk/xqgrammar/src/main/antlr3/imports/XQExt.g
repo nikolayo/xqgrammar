@@ -228,7 +228,7 @@ ftWildCardOption
     | NO WILDCARDS
     ;
 ftExtensionOption
-    : OPTION qName StringLiteral
+    : OPTION eQName StringLiteral
     ;
 ftIgnoreOption
     : WITHOUT CONTENT unionExpr
@@ -245,7 +245,7 @@ functionItemExpr
     | inlineFunction
     ;
 literalFunctionItem
-    : qName '#' IntegerLiteral
+    : eQName '#' IntegerLiteral
     ;
 inlineFunction
     : FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr

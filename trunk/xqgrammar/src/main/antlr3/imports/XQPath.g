@@ -75,7 +75,7 @@ nodeTest
     | nameTest
     ;
 nameTest
-    : qName
+    : eQName
     | wildcard
     ;
 wildcard                                                         // ws:explicit
@@ -120,7 +120,7 @@ varRef
     : '$' varName
     ;
 varName
-    : qName
+    : eQName
     ;
 parenthesizedExpr
     : '(' expr? ')'
@@ -209,13 +209,13 @@ compDocConstructor
     : DOCUMENT LCurly expr RCurly
     ;
 compElemConstructor
-    : ELEMENT (qName | (LCurly expr RCurly)) LCurly contentExpr? RCurly
+    : ELEMENT (eQName | (LCurly expr RCurly)) LCurly contentExpr? RCurly
     ;
 contentExpr
     : expr
     ;
 compAttrConstructor
-    : ATTRIBUTE (qName | (LCurly expr RCurly)) LCurly expr? RCurly;
+    : ATTRIBUTE (eQName | (LCurly expr RCurly)) LCurly expr? RCurly;
 compTextConstructor
     : TEXT LCurly expr RCurly
     ;
@@ -248,7 +248,7 @@ itemType
     | {xqVersion==XQUERY_1_1}? => parenthesizedItemType
     ;
 atomicType
-    : qName
+    : eQName
     ;
 kindTest
     : documentTest
@@ -304,14 +304,11 @@ elementDeclaration
     : elementName
     ;
 attributeName
-    : qName
+    : eQName
     ;
 elementName
-    : qName
+    : eQName
     ;
 typeName
-    : qName
-    ;
-uriLiteral
-    : StringLiteral
+    : eQName
     ;
