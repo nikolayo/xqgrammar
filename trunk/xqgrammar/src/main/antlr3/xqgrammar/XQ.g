@@ -146,8 +146,7 @@ prolog
           | ftOptionDecl                                        // ext:fulltext
       ) ';')* 
       ((
-            varDecl 
-          | functionDecl 
+            annotatedDecl 
           | optionDecl
           | contextItemDecl                                       // XQuery 1.1
       ) ';')*
@@ -230,8 +229,14 @@ moduleImport
     : IMPORT MODULE (NAMESPACE ncName SymEq)? uriLiteral
       (AT uriLiteral (',' uriLiteral)*)?
     ;
+annotatedDecl
+    : DECLARE annotation* (varDecl | functionDecl)
+    ;
+annotation
+    : '%' eQName ('(' literal (',' literal)* ')' )?
+    ;
 varDecl
-    : DECLARE varModifier? VARIABLE '$' varName typeDeclaration?
+    : varModifier? VARIABLE '$' varName typeDeclaration?
       (':=' exprSingle | EXTERNAL externalDefaultValue)
     ;
 varModifier
@@ -254,31 +259,19 @@ functionDecl
     : // DECLARE FUNCTION efQName '(' paramList? ')'               // XQuery 1.0
       // DECLARE UPDATING? FUNCTION efQName '('  paramList? ')'    // ext:update
       //     (AS sequenceType)? (enclosedExpr | EXTERNAL)
-         DECLARE xq11FunOptions* (updateFunModifier | scriptingFunModifier)?
-             FUNCTION efQName '(' paramList? ')'
-             (AS sequenceType)? (enclosedExpr | EXTERNAL)
+         (updateFunModifier | scriptingFunModifier)?
+         FUNCTION efQName '(' paramList? ')'
+         (AS sequenceType)? (enclosedExpr | EXTERNAL)
     |    {scripting}? =>                                       // ext:sctipting 
-         DECLARE xq11FunOptions*
-             SEQUENTIAL
-             FUNCTION efQName '(' paramList? ')'
-             (AS sequenceType)? (block        | EXTERNAL)
+         SEQUENTIAL
+         FUNCTION efQName '(' paramList? ')'
+         (AS sequenceType)? (block        | EXTERNAL)
     ;
 updateFunModifier
     : {update}? => UPDATING
     ;
 scriptingFunModifier
     : {scripting}? => SIMPLE
-    ;
-xq11FunOptions
-    : {xqVersion==XQUERY_1_1}? => (privateOption | deterministicOption)
-    ;
-privateOption
-    : PRIVATE
-    | PUBLIC
-    ;
-deterministicOption
-    : DETERMINISTIC
-    | NONDETERMINISTIC
     ;
 paramList
     : param (',' param)*
@@ -530,6 +523,10 @@ fncName
   //| EMPTY
     // end of XQUery 1.1 tokens
     ;
+literal
+    : IntegerLiteral | DecimalLiteral | DoubleLiteral | StringLiteral
+    ;
+
 LAngle                  : '<';
 RAngle                  : '>';
 LCurly                  : '{';
