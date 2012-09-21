@@ -31,7 +31,8 @@ pathExpr                                              // xgs:leading-lone-slash
     | relativePathExpr
     ;
 relativePathExpr
-    : stepExpr (('/' | '//') stepExpr)*
+    : // stepExpr (('/' | '//'      ) stepExpr)*     // XQuery 1.0
+         stepExpr (('/' | '//' | '!') stepExpr)*     // XQuery 3.0
     ;
 stepExpr
     : filterExpr
@@ -203,7 +204,7 @@ computedConstructor
     | compTextConstructor
     | compCommentConstructor
     | compPIConstructor
-    | {xqVersion==XQUERY_3_0}? => compNamespaceConstructor        // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => compNamespaceConstructor        // XQuery 3.0
     ;
 compDocConstructor
     : DOCUMENT LCurly expr RCurly
@@ -260,7 +261,7 @@ kindTest
     | commentTest
     | textTest
     | anyKindTest
-    | {xqVersion==XQUERY_3_0}? => namespaceNodeTest               // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => namespaceNodeTest               // XQuery 3.0
     ;
 anyKindTest
     : NODE '(' ')'
