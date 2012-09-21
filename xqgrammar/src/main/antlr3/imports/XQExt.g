@@ -234,7 +234,7 @@ ftIgnoreOption
     : WITHOUT CONTENT unionExpr
     ;
 // end of ext:fulltext specific rules
-// start of Xquery 1.1 specific rules
+// start of XQuery 3.0 specific rules
 contextItemDecl
     : {xqVersion==XQUERY_3_0}? =>
       DECLARE CONTEXT ITEM (AS itemType)? 
@@ -248,7 +248,7 @@ literalFunctionItem
     : eQName '#' IntegerLiteral
     ;
 inlineFunction
-    : FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
+    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
     ;
 dynamicFunctionInvocation
     : '(' (exprSingle (',' exprSingle)*)? ')'
@@ -278,7 +278,7 @@ catchErrorList
     : nameTest ('|' nameTest)*
     ;
 compNamespaceConstructor
-    : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr? RCurly
+    : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr RCurly
     ;
 prefix
     : ncName
@@ -305,4 +305,4 @@ typedFunctionTest
 parenthesizedItemType
     : '(' itemType ')'
     ;
-// end of XQuery 1.1 specific rules
+// end of XQuery 3.0 specific rules

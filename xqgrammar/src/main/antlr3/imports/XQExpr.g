@@ -48,21 +48,21 @@ exprSingle
     | {scripting}?             => assignmentExpr               // ext:scripting
     | {scripting}?             => exitExpr                     // ext:scripting
     | {scripting}?             => whileExpr                    // ext:scripting
-    | {xqVersion==XQUERY_3_0}? => switchExpr                      // XQuery 1.1
-    | {xqVersion==XQUERY_3_0}? => tryCatchExpr                    // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => switchExpr                      // XQuery 3.0
+    | {xqVersion==XQUERY_3_0}? => tryCatchExpr                    // XQuery 3.0
     ;
 flworExpr
     : {xqVersion==XQUERY_1_0}? =>
       (forClause | letClause)+ whereClause? orderByClause? RETURN exprSingle
     | {xqVersion==XQUERY_3_0}? =>
-      initalClause intermediateClause* returnClause               // XQuery 1.1
+      initalClause intermediateClause* returnClause               // XQuery 3.0
     ;
-initalClause                                                      // XQuery 1.1
+initalClause                                                      // XQuery 3.0
     : forClause
     | letClause
     | {xqVersion==XQUERY_3_0}? => windowClause
     ;
-intermediateClause                                                // XQuery 1.1
+intermediateClause                                                // XQuery 3.0
     : initalClause
     | whereClause
     | {xqVersion==XQUERY_3_0}? => groupByClause
@@ -76,7 +76,7 @@ forBinding
     : '$' varName typeDeclaration? allowingEmpty? positionalVar? ftScoreVar? 
       IN exprSingle
     ;
-allowingEmpty                                                     // XQuery 1.1
+allowingEmpty                                                     // XQuery 3.0
     : {xqVersion==XQUERY_3_0}? => ALLOWING EMPTY
     ;
 positionalVar
@@ -91,49 +91,49 @@ letClause
 letBinding
     : (('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle
     ;
-windowClause                                                      // XQuery 1.1
+windowClause                                                      // XQuery 3.0
     : FOR (tumblingWindowClause | slidingWindowClause)
     ;
-tumblingWindowClause                                              // XQuery 1.1
+tumblingWindowClause                                              // XQuery 3.0
     : TUMBLING WINDOW '$' varName typeDeclaration? IN exprSingle 
       windowStartCondition windowEndCondition?
     ;
-slidingWindowClause                                               // XQuery 1.1
+slidingWindowClause                                               // XQuery 3.0
     : SLIDING WINDOW  '$' varName typeDeclaration? IN exprSingle 
       windowStartCondition windowEndCondition
     ;
-windowStartCondition                                              // XQuery 1.1
+windowStartCondition                                              // XQuery 3.0
     : START windowVars WHEN exprSingle
     ;
-windowEndCondition                                                // XQuery 1.1
+windowEndCondition                                                // XQuery 3.0
     : ONLY? END windowVars WHEN exprSingle
     ;
-windowVars                                                        // XQuery 1.1
+windowVars                                                        // XQuery 3.0
     : ('$' currentItem)? positionalVar? 
       (PREVIOUS '$' previousItem)? (NEXT '$' nextItem)?
     ;
-currentItem                                                       // XQuery 1.1
+currentItem                                                       // XQuery 3.0
     : eQName
     ;
-previousItem                                                      // XQuery 1.1
+previousItem                                                      // XQuery 3.0
     : eQName
     ;
-nextItem                                                          // XQuery 1.1
+nextItem                                                          // XQuery 3.0
     : eQName
     ;
-countClause                                                       // XQuery 1.1
+countClause                                                       // XQuery 3.0
     : COUNT '$' varName
     ;
 whereClause
     : WHERE exprSingle
     ;
-groupByClause                                                     // XQuery 1.1
+groupByClause                                                     // XQuery 3.0
     : GROUP BY groupingSpecList
     ;
-groupingSpecList                                                  // XQuery 1.1
+groupingSpecList                                                  // XQuery 3.0
     : groupingSpec (',' groupingSpec)*
     ;
-groupingSpec                                                      // XQuery 1.1
+groupingSpec                                                      // XQuery 3.0
     : '$' varName (COLLATION uriLiteral)?
     ;
 orderByClause
@@ -150,7 +150,7 @@ orderModifier
       (EMPTY (GREATEST | LEAST))? 
       (COLLATION uriLiteral)?
     ;
-returnClause                                                      // XQuery 1.1
+returnClause                                                      // XQuery 3.0
     : RETURN exprSingle
     ;
 quantifiedExpr
@@ -182,7 +182,11 @@ comparisonExpr
       ftContainsExpr ( (valueComp | generalComp | nodeComp) ftContainsExpr )?
     ;
 ftContainsExpr                                                  // ext:fulltext
-    : rangeExpr ftContainsClause?
+    : stringConcatExpr ftContainsClause?
+    ;
+stringConcatExpr
+    : //rangeExpr                      // XQuery 1.0
+        rangeExpr ('||' rangeExpr)*      // XQuery 3.0
     ;
 ftContainsClause
     :  {fullText}? => CONTAINS TEXT ftSelection ftIgnoreOption?

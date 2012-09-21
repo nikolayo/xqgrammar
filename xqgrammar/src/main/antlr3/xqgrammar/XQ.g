@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
 
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.4.0
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.4.1
 
             Supported W3C grammars:
 
@@ -38,7 +38,7 @@
                http://www.w3.org/TR/xpath-full-text-10/
 
             5. XQuery 3.0
-               Working Draft / 14 June 2011
+               Working Draft / 13 December 2011
                http://www.w3.org/TR/xquery-30/
 
 =============================================================================*/
@@ -146,7 +146,7 @@ prolog
       ((
             annotatedDecl 
           | optionDecl
-          | contextItemDecl                                       // XQuery 1.1
+          | contextItemDecl                                       // XQuery 3.0
       ) ';')*
     ;
 setter
@@ -158,7 +158,7 @@ setter
     | emptyOrderDecl 
     | copyNamespacesDecl
     | {update}?                => revalidationDecl                // ext:update
-    | {xqVersion==XQUERY_3_0}? => decimalFormatDecl               // XQuery 1.1
+    | {xqVersion==XQUERY_3_0}? => decimalFormatDecl               // XQuery 3.0
     ;
 importDecl
     : schemaImport
@@ -188,11 +188,11 @@ emptyOrderDecl
 copyNamespacesDecl
     : DECLARE COPY_NAMESPACES preserveMode ',' inheritMode
     ;
-decimalFormatDecl                                                 // XQuery 1.1
+decimalFormatDecl                                                 // XQuery 3.0
     : DECLARE ((DECIMAL_FORMAT eQName) | (DEFAULT DECIMAL_FORMAT))
       (dfPropertyName SymEq StringLiteral)*
     ;
-dfPropertyName                                                    // XQuery 1.1
+dfPropertyName                                                    // XQuery 3.0
     : DECIMAL_SEPARATOR
     | GROUPING_SEPARATOR
     | INFINITY
@@ -241,13 +241,13 @@ varModifier
     : {scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
     ;
 externalDefaultValue
-    : {xqVersion==XQUERY_3_0}? => ':=' varDefaultValue            // XQuery 1.1
+    : {xqVersion==XQUERY_3_0}? => ':=' varDefaultValue            // XQuery 3.0
     |
     ;
-varValue                                                          // XQuery 1.1
+varValue                                                          // XQuery 3.0
     : exprSingle
     ;
-varDefaultValue                                                   // XQuery 1.1
+varDefaultValue                                                   // XQuery 3.0
     : exprSingle
     ;
 constructionDecl
@@ -323,9 +323,9 @@ ncName
     | TEXT
     | TYPESWITCH
     | WHILE                                                    // ext:scripting
-    | FUNCTION                                                    // XQuery 1.1
-    | NAMESPACE_NODE                                              // XQuery 1.1
-    | SWITCH                                                      // XQuery 1.1
+    | FUNCTION                                                    // XQuery 3.0
+    | NAMESPACE_NODE                                              // XQuery 3.0
+    | SWITCH                                                      // XQuery 3.0
     ;
 fncName
     : NCName
@@ -487,7 +487,7 @@ fncName
     | WORD
     | WORDS
     // end   of ext:fulltext tokens
-    // start of XQuery 1.1   tokens
+    // start of XQuery 3.0   tokens
     | CATCH
     | CONTEXT
     | DETERMINISTIC
@@ -519,7 +519,7 @@ fncName
     | WHEN
     | ALLOWING
   //| EMPTY
-    // end of XQUery 1.1 tokens
+    // end of XQuery 3.0 tokens
     ;
 
 LAngle                  : '<';
@@ -713,7 +713,7 @@ WITHOUT                 : 'without';
 WORD                    : 'word';
 WORDS                   : 'words';
 // end   of ext:fulltext tokens
-// start of XQuery 1.1   tokens
+// start of XQuery 3.0   tokens
 CATCH                   : 'catch';
 CONTEXT                 : 'context';
 DETERMINISTIC           : 'deterministic';
@@ -745,7 +745,7 @@ SLIDING                 : 'sliding';
 TUMBLING                : 'tumbling';
 WHEN                    : 'when';
 ALLOWING                : 'allowing';
-// end of XQuery 1.1 tokens
+// end of XQuery 3.0 tokens
 
 DirCommentConstructor                                            // ws:explicit
     : '<!--' (options {greedy=false;} : . )* '-->'   
