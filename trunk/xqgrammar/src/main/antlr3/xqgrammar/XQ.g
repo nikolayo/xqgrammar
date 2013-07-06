@@ -1,6 +1,6 @@
 /*=============================================================================
 
-    Copyright 2009, 2010, 2011 Nikolay Ognyanov
+    Copyright 2009 - 2013 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -244,10 +244,14 @@ varValue
 varDefaultValue
     : exprSingle
     ;
+contextItemDecl
+    : DECLARE CONTEXT ITEM (AS itemType)? 
+      ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
+    ;
 functionDecl
     : (updateFunModifier | scriptingFunModifier)?
       FUNCTION efQName '(' paramList? ')'
-      (AS sequenceType)? (enclosedExpr | EXTERNAL)
+      (AS sequenceType)? (functionBody | EXTERNAL)
     | {scripting}? =>                                       // ext:sctipting 
       SEQUENTIAL
       FUNCTION efQName '(' paramList? ')'
@@ -264,6 +268,9 @@ paramList
     ;
 param
     : '$' eQName typeDeclaration?
+    ;
+functionBody
+    : enclosedExpr
     ;
 enclosedExpr
     : LCurly expr RCurly
@@ -379,7 +386,12 @@ groupingSpecList
     : groupingSpec (',' groupingSpec)*
     ;
 groupingSpec
-    : '$' varName (COLLATION uriLiteral)?
+    : groupingVariable 
+      (typeDeclaration? ':=' exprSingle)? 
+      (COLLATION uriLiteral)?
+    ;
+groupingVariable
+    : '$' varName
     ;
 orderByClause
     : ((ORDER BY) | (STABLE ORDER BY)) orderSpecList
@@ -448,10 +460,7 @@ andExpr
     : comparisonExpr ( AND comparisonExpr )*
     ;
 comparisonExpr
-    : //XQuery 1.0 :
-      //rangeExpr ( (valueComp | generalComp | nodeComp) rangeExpr )?
-                                                                // ext:fulltext
-      ftContainsExpr ( (valueComp | generalComp | nodeComp) ftContainsExpr )?
+    : ftContainsExpr ( (valueComp | generalComp | nodeComp) ftContainsExpr )?
     ;
 ftContainsExpr                                                  // ext:fulltext
     : stringConcatExpr ftContainsClause?
@@ -528,13 +537,13 @@ validationMode
 extensionExpr
     : (Pragma { parsePragma(); })+ LCurly expr? RCurly
     ;
+		//W3C grammar :
+		//pragma                                                         // ws:explicit
+		//  : '(#' S? eQName (S PragmaContents)? '#)'
+		//  ;
 simpleMapExpr
     : pathExpr ('!' pathExpr)*
     ;
-//W3C grammar :
-//pragma                                                         // ws:explicit
-//  : '(#' S? eQName (S PragmaContents)? '#)'
-//  ;
 pathExpr                                              // xgs:leading-lone-slash
     : ('/'  relativePathExpr) => '/'  relativePathExpr
     | ('/'        '*'       ) => '/' '*'
@@ -599,6 +608,9 @@ wildcard                                                         // ws:explicit
 postfixExpr
     : primaryExpr (predicate | argumentList)*
     ;
+argumentList
+    : '(' (argument (',' argument)*)? ')'
+    ;
 predicateList
     : predicate*
     ;
@@ -645,9 +657,6 @@ unorderedExpr
     ;
 functionCall                        // xgs:reserved-function-names // gn:parens
     : fqName argumentList
-    ;
-argumentList
-    : '(' (argument (',' argument)*)? ')'
     ;
 argument
     : exprSingle
@@ -719,10 +728,10 @@ computedConstructor
     : compDocConstructor
     | compElemConstructor
     | compAttrConstructor
+    | compNamespaceConstructor
     | compTextConstructor
     | compCommentConstructor
     | compPIConstructor
-    | compNamespaceConstructor
     ;
 compDocConstructor
     : DOCUMENT LCurly expr RCurly
@@ -735,6 +744,18 @@ contentExpr
     ;
 compAttrConstructor
     : ATTRIBUTE (eQName | (LCurly expr RCurly)) LCurly expr? RCurly;
+compNamespaceConstructor
+    : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr RCurly
+    ;
+prefix
+    : ncName
+    ;
+prefixExpr
+    : expr
+    ;
+uriExpr
+    : expr
+    ;
 compTextConstructor
     : TEXT LCurly expr RCurly
     ;
@@ -744,8 +765,18 @@ compCommentConstructor
 compPIConstructor
     : PROCESSING_INSTRUCTION (ncName | (LCurly expr RCurly)) LCurly expr? RCurly
     ;
+functionItemExpr
+    : namedFunctionRef
+    | inlineFunctionExpr
+    ;
+namedFunctionRef
+    : eQName '#' IntegerLiteral
+    ;
+inlineFunctionExpr
+    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
+    ;
 singleType
-    : atomicType '?'?
+    : simpleTypeName '?'?
     ;
 typeDeclaration
     : AS sequenceType
@@ -762,11 +793,11 @@ occurrenceIndicator                                 // xgs:occurance-indicators
 itemType
     : kindTest
     | (ITEM '(' ')')
-    | atomicType
     | functionTest
+    | atomicOrUnionType
     | parenthesizedItemType
     ;
-atomicType
+atomicOrUnionType
     : eQName
     ;
 kindTest
@@ -778,8 +809,8 @@ kindTest
     | piTest
     | commentTest
     | textTest
-    | anyKindTest
     | namespaceNodeTest
+    | anyKindTest
     ;
 anyKindTest
     : NODE '(' ')'
@@ -792,6 +823,9 @@ textTest
     ;
 commentTest
     : COMMENT '(' ')'
+    ;
+namespaceNodeTest
+    : NAMESPACE_NODE '(' ')'
     ;
 piTest
     : PROCESSING_INSTRUCTION '(' (ncName | StringLiteral)? ')'
@@ -828,10 +862,26 @@ attributeName
 elementName
     : eQName
     ;
+simpleTypeName
+    : typeName
+    ;
 typeName
     : eQName
     ;
-// start of ext:update specific rules
+functionTest
+    : annotation* (anyFunctionTest | typedFunctionTest)
+    ;
+anyFunctionTest
+    : FUNCTION '(' '*' ')'
+    ;
+typedFunctionTest
+    : FUNCTION '(' (sequenceType (',' sequenceType)*)? ')' AS sequenceType
+    ;
+parenthesizedItemType
+    : '(' itemType ')'
+    ;
+
+// start of ext:update - specific rules
 revalidationDecl
     : DECLARE REVALIDATION (STRICT | LAX | SKIP)
     ;
@@ -866,8 +916,8 @@ transformExpr
       (',' '$' varName ':=' exprSingle)* 
       MODIFY exprSingle RETURN exprSingle
     ;
-// end   of ext:update    specific rules
-// start of ext:scripting specific rules
+// end   of ext:update    - specific rules
+// start of ext:scripting - specific rules
 assignmentExpr
     : '$' varName ':=' exprSingle
     ;
@@ -896,8 +946,8 @@ whileExpr
 whileBody
     : block
     ;
-// end   of ext:scripting specific rules
-// start of ext:fulltext  specific rules
+// end   of ext:scripting - specific rules
+// start of ext:fulltext  - specific rules
 ftSelection
     : ftOr ftPosFilter*
     ;
@@ -1042,50 +1092,7 @@ ftExtensionOption
 ftIgnoreOption
     : WITHOUT CONTENT unionExpr
     ;
-// end of ext:fulltext specific rules
-// start of XQuery 3.0 specific rules
-contextItemDecl
-    : DECLARE CONTEXT ITEM (AS itemType)? 
-      ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
-    ;
-functionItemExpr
-    : namedFunctionRef
-    | inlineFunctionExpr
-    ;
-namedFunctionRef
-    : eQName '#' IntegerLiteral
-    ;
-inlineFunctionExpr
-    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
-    ;
-compNamespaceConstructor
-    : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr RCurly
-    ;
-prefix
-    : ncName
-    ;
-prefixExpr
-    : expr
-    ;
-uriExpr
-    : expr
-    ;
-namespaceNodeTest
-    : NAMESPACE_NODE '(' ')'
-    ;
-functionTest
-    : annotation* (anyFunctionTest | typedFunctionTest)
-    ;
-anyFunctionTest
-    : FUNCTION '(' '*' ')'
-    ;
-typedFunctionTest
-    : FUNCTION '(' (sequenceType (',' sequenceType)*)? ')' AS sequenceType
-    ;
-parenthesizedItemType
-    : '(' itemType ')'
-    ;
-// end of XQuery 3.0 specific rules
+// end of ext:fulltext - specific rules
 
 // End of W3C grammars.
 eQName
@@ -1751,4 +1758,3 @@ fragment QuotAttrContentChar
 fragment AposAttrContentChar
     :
     ;
-
