@@ -83,6 +83,7 @@ wildcard                                                         // ws:explicit
     : '*'
     | ncName Colon {noSpaceBefore();} '*'    {noSpaceBefore();}
     | '*'    Colon {noSpaceBefore();} ncName {noSpaceBefore();}
+    | BracedURILiteral '*'
     ;
 filterExpr
     : primaryExpr filterExprSuffix*

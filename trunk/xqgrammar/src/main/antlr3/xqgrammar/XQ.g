@@ -290,7 +290,7 @@ eQName
     | uriQualifiedName
     ;
 uriQualifiedName
-    : uriLiteral Colon {noSpaceBefore();} ncName {noSpaceBefore();}
+    : BracedURILiteral ncName {noSpaceBefore();}
     ;
 qName
     : ncName (Colon {noSpaceBefore();} ncName {noSpaceBefore();})?
@@ -810,6 +810,13 @@ PredefinedEntityRef
 CharRef
     : '&#'  Digits    ';' {checkCharRef();}
     | '&#x' HexDigits ';' {checkCharRef();}
+    ;
+fragment
+BracedURISymbol
+    : PredefinedEntityRef | CharRef | ~('&'|'{'|'}')
+    ;
+BracedURILiteral
+    : 'Q{' BracedURISymbol* '}'
     ;
 Comment
     : '(:' (options {greedy=false;}: Comment | . )* ':)' { $channel = HIDDEN; }
