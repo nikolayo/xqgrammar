@@ -67,7 +67,7 @@ tokens {
 @header {
 /*=============================================================================
 
-    Copyright 2009, 2010 Nikolay Ognyanov
+    Copyright 2009 - 2013 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -139,9 +139,9 @@ prolog
           | ftOptionDecl                                        // ext:fulltext
       ) ';')* 
       ((
-            annotatedDecl 
+            contextItemDecl
           | optionDecl
-          | contextItemDecl                                       // XQuery 3.0
+          | annotatedDecl
       ) ';')*
     ;
 setter
@@ -152,42 +152,40 @@ setter
     | orderingModeDecl     
     | emptyOrderDecl 
     | copyNamespacesDecl
-    | {update}?                => revalidationDecl                // ext:update
-    | decimalFormatDecl               // XQuery 3.0
-    ;
-importDecl
-    : schemaImport
-    | moduleImport
-    ;
-namespaceDecl
-    : DECLARE NAMESPACE ncName SymEq uriLiteral
+    | decimalFormatDecl
+    | {update}? => revalidationDecl                             // ext:update
     ;
 boundarySpaceDecl
     : DECLARE BOUNDARY_SPACE (PRESERVE | STRIP)
     ;
-defaultNamespaceDecl
-    : DECLARE DEFAULT (ELEMENT | FUNCTION) NAMESPACE uriLiteral
+defaultCollationDecl
+    : DECLARE DEFAULT COLLATION uriLiteral;
+baseURIDecl
+    : DECLARE BASE_URI uriLiteral
     ;
-optionDecl
-    : DECLARE OPTION eQName StringLiteral
-    ;
-ftOptionDecl                                                    // ext:fulltext
-    : {fullText}? => DECLARE FT_OPTION (USING ftMatchOption)+
+constructionDecl
+    : DECLARE CONSTRUCTION (STRIP | PRESERVE)
     ;
 orderingModeDecl
     : DECLARE ORDERING (ORDERED | UNORDERED)
     ;
 emptyOrderDecl
- 	: DECLARE DEFAULT ORDER EMPTY (GREATEST | LEAST)
- 	;
+    : DECLARE DEFAULT ORDER EMPTY (GREATEST | LEAST)
+    ;
 copyNamespacesDecl
     : DECLARE COPY_NAMESPACES preserveMode ',' inheritMode
     ;
-decimalFormatDecl                                                 // XQuery 3.0
+preserveMode
+    : PRESERVE | NO_PRESERVE
+    ;
+inheritMode
+    : INHERIT  | NO_INHERIT
+    ;
+decimalFormatDecl
     : DECLARE ((DECIMAL_FORMAT eQName) | (DEFAULT DECIMAL_FORMAT))
       (dfPropertyName SymEq StringLiteral)*
     ;
-dfPropertyName                                                    // XQuery 3.0
+dfPropertyName
     : DECIMAL_SEPARATOR
     | GROUPING_SEPARATOR
     | INFINITY
@@ -199,16 +197,9 @@ dfPropertyName                                                    // XQuery 3.0
     | DIGIT
     | PATTERN_SEPARATOR
     ;
-preserveMode
-    : PRESERVE | NO_PRESERVE
-    ;
-inheritMode
-    : INHERIT  | NO_INHERIT
-    ;
-defaultCollationDecl
-    : DECLARE DEFAULT COLLATION uriLiteral;
-baseURIDecl
-    : DECLARE BASE_URI uriLiteral
+importDecl
+    : schemaImport
+    | moduleImport
     ;
 schemaImport
     : IMPORT SCHEMA schemaPrefix? uriLiteral 
@@ -222,43 +213,45 @@ moduleImport
     : IMPORT MODULE (NAMESPACE ncName SymEq)? uriLiteral
       (AT uriLiteral (',' uriLiteral)*)?
     ;
+namespaceDecl
+    : DECLARE NAMESPACE ncName SymEq uriLiteral
+    ;
+defaultNamespaceDecl
+    : DECLARE DEFAULT (ELEMENT | FUNCTION) NAMESPACE uriLiteral
+    ;
 annotatedDecl
     : DECLARE annotation* (varDecl | functionDecl)
     ;
 annotation
     : '%' eQName ('(' literal (',' literal)* ')' )?
     ;
+optionDecl
+    : DECLARE OPTION eQName StringLiteral
+    ;
+ftOptionDecl                                                    // ext:fulltext
+    : {fullText}? => DECLARE FT_OPTION (USING ftMatchOption)+
+    ;
 varDecl
     : varModifier? VARIABLE '$' varName typeDeclaration?
-      (':=' varValue | EXTERNAL externalDefaultValue)
+      ((':=' varValue) | (EXTERNAL (':=' varDefaultValue)?))
     ;
 varModifier
     : {scripting}? => UNASSIGNABLE? | ASSIGNABLE               // ext:scripting
     ;
-externalDefaultValue
-    : ':=' varDefaultValue            // XQuery 3.0
-    |
-    ;
-varValue                                                          // XQuery 3.0
+varValue
     : exprSingle
     ;
-varDefaultValue                                                   // XQuery 3.0
+varDefaultValue
     : exprSingle
-    ;
-constructionDecl
-    : DECLARE CONSTRUCTION (STRIP | PRESERVE)
     ;
 functionDecl
-    : // DECLARE FUNCTION efQName '(' paramList? ')'               // XQuery 1.0
-      // DECLARE UPDATING? FUNCTION efQName '('  paramList? ')'    // ext:update
-      //     (AS sequenceType)? (enclosedExpr | EXTERNAL)
-         (updateFunModifier | scriptingFunModifier)?
-         FUNCTION efQName '(' paramList? ')'
-         (AS sequenceType)? (enclosedExpr | EXTERNAL)
-    |    {scripting}? =>                                       // ext:sctipting 
-         SEQUENTIAL
-         FUNCTION efQName '(' paramList? ')'
-         (AS sequenceType)? (block        | EXTERNAL)
+    : (updateFunModifier | scriptingFunModifier)?
+      FUNCTION efQName '(' paramList? ')'
+      (AS sequenceType)? (enclosedExpr | EXTERNAL)
+    | {scripting}? =>                                       // ext:sctipting 
+      SEQUENTIAL
+      FUNCTION efQName '(' paramList? ')'
+      (AS sequenceType)? (block        | EXTERNAL)
     ;
 updateFunModifier
     : {update}? => UPDATING
@@ -291,8 +284,10 @@ concatExpr
 exprSingle
     : flworExpr
     | quantifiedExpr
+    | switchExpr
     | typeswitchExpr
     | ifExpr
+    | tryCatchExpr
     | orExpr
     | {update}?                => insertExpr                      // ext:update 
     | {update}?                => deleteExpr                      // ext:update
@@ -303,18 +298,16 @@ exprSingle
     | {scripting}?             => assignmentExpr               // ext:scripting
     | {scripting}?             => exitExpr                     // ext:scripting
     | {scripting}?             => whileExpr                    // ext:scripting
-    | switchExpr                      // XQuery 3.0
-    | tryCatchExpr                    // XQuery 3.0
     ;
 flworExpr
-    : initalClause intermediateClause* returnClause               // XQuery 3.0
+    : initalClause intermediateClause* returnClause
     ;
-initalClause                                                      // XQuery 3.0
+initalClause
     : forClause
     | letClause
     | windowClause
     ;
-intermediateClause                                                // XQuery 3.0
+intermediateClause
     : initalClause
     | whereClause
     | groupByClause
@@ -328,7 +321,7 @@ forBinding
     : '$' varName typeDeclaration? allowingEmpty? positionalVar? ftScoreVar? 
       IN exprSingle
     ;
-allowingEmpty                                                     // XQuery 3.0
+allowingEmpty
     : ALLOWING EMPTY
     ;
 positionalVar
@@ -343,49 +336,49 @@ letClause
 letBinding
     : (('$' varName typeDeclaration?) | ftScoreVar) ':=' exprSingle
     ;
-windowClause                                                      // XQuery 3.0
+windowClause 
     : FOR (tumblingWindowClause | slidingWindowClause)
     ;
-tumblingWindowClause                                              // XQuery 3.0
+tumblingWindowClause
     : TUMBLING WINDOW '$' varName typeDeclaration? IN exprSingle 
       windowStartCondition windowEndCondition?
     ;
-slidingWindowClause                                               // XQuery 3.0
+slidingWindowClause
     : SLIDING WINDOW  '$' varName typeDeclaration? IN exprSingle 
       windowStartCondition windowEndCondition
     ;
-windowStartCondition                                              // XQuery 3.0
+windowStartCondition
     : START windowVars WHEN exprSingle
     ;
-windowEndCondition                                                // XQuery 3.0
+windowEndCondition
     : ONLY? END windowVars WHEN exprSingle
     ;
-windowVars                                                        // XQuery 3.0
+windowVars
     : ('$' currentItem)? positionalVar? 
       (PREVIOUS '$' previousItem)? (NEXT '$' nextItem)?
     ;
-currentItem                                                       // XQuery 3.0
+currentItem
     : eQName
     ;
-previousItem                                                      // XQuery 3.0
+previousItem
     : eQName
     ;
-nextItem                                                          // XQuery 3.0
+nextItem
     : eQName
     ;
-countClause                                                       // XQuery 3.0
+countClause
     : COUNT '$' varName
     ;
 whereClause
     : WHERE exprSingle
     ;
-groupByClause                                                     // XQuery 3.0
+groupByClause
     : GROUP BY groupingSpecList
     ;
-groupingSpecList                                                  // XQuery 3.0
+groupingSpecList
     : groupingSpec (',' groupingSpec)*
     ;
-groupingSpec                                                      // XQuery 3.0
+groupingSpec
     : '$' varName (COLLATION uriLiteral)?
     ;
 orderByClause
@@ -402,13 +395,22 @@ orderModifier
       (EMPTY (GREATEST | LEAST))? 
       (COLLATION uriLiteral)?
     ;
-returnClause                                                      // XQuery 3.0
+returnClause
     : RETURN exprSingle
     ;
 quantifiedExpr
     : (SOME | EVERY) '$' varName typeDeclaration? IN exprSingle 
                 (',' '$' varName typeDeclaration? IN exprSingle)* 
       SATISFIES exprSingle
+    ;
+switchExpr
+    : SWITCH '(' expr ')' switchCaseClause+ DEFAULT RETURN exprSingle
+    ;
+switchCaseClause
+    : ( CASE switchCaseOperand)+ RETURN exprSingle
+    ;
+switchCaseOperand
+    : exprSingle
     ;
 typeswitchExpr
     : TYPESWITCH '(' expr ')' 
@@ -423,6 +425,21 @@ sequenceTypeUnion
     ;
 ifExpr
     : IF '(' expr ')' THEN exprSingle ELSE exprSingle
+    ;
+tryCatchExpr
+    : tryClause catchClause+
+    ;
+tryClause
+    : TRY LCurly tryTargetExpr RCurly
+    ;
+tryTargetExpr
+    : expr
+    ;
+catchClause
+    : CATCH catchErrorList LCurly expr RCurly
+    ;
+catchErrorList
+    : nameTest ('|' nameTest)*
     ;
 orExpr
     : andExpr ( OR andExpr )*
@@ -440,8 +457,7 @@ ftContainsExpr                                                  // ext:fulltext
     : stringConcatExpr ftContainsClause?
     ;
 stringConcatExpr
-    : //rangeExpr                      // XQuery 1.0
-      rangeExpr ('||' rangeExpr)*      // XQuery 3.0
+    : rangeExpr ('||' rangeExpr)*
     ;
 ftContainsClause
     :  {fullText}? => CONTAINS TEXT ftSelection ftIgnoreOption?
@@ -706,7 +722,7 @@ computedConstructor
     | compTextConstructor
     | compCommentConstructor
     | compPIConstructor
-    | compNamespaceConstructor        // XQuery 3.0
+    | compNamespaceConstructor
     ;
 compDocConstructor
     : DOCUMENT LCurly expr RCurly
@@ -763,7 +779,7 @@ kindTest
     | commentTest
     | textTest
     | anyKindTest
-    | namespaceNodeTest               // XQuery 3.0
+    | namespaceNodeTest
     ;
 anyKindTest
     : NODE '(' ')'
@@ -1041,30 +1057,6 @@ namedFunctionRef
     ;
 inlineFunctionExpr
     : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
-    ;
-switchExpr
-    : SWITCH '(' expr ')' switchCaseClause+ DEFAULT RETURN exprSingle
-    ;
-switchCaseClause
-    : ( CASE switchCaseOperand)+ RETURN exprSingle
-    ;
-switchCaseOperand
-    : exprSingle
-    ;
-tryCatchExpr
-    : tryClause catchClause+
-    ;
-tryClause
-    : TRY LCurly tryTargetExpr RCurly
-    ;
-tryTargetExpr
-    : expr
-    ;
-catchClause
-    : CATCH catchErrorList LCurly expr RCurly
-    ;
-catchErrorList
-    : nameTest ('|' nameTest)*
     ;
 compNamespaceConstructor
     : NAMESPACE (prefix | (LCurly prefixExpr RCurly)) LCurly uriExpr RCurly
