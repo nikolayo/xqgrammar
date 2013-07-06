@@ -17,7 +17,7 @@
 =============================================================================*/
 /*=============================================================================
 
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 1.5.0
+            XQGrammar : An NTLR 3 XQuery Grammar, Version 3.0.0
 
             Supported W3C grammars:
 
@@ -29,13 +29,14 @@
                Recommendation / 17 March 2011
                http://www.w3.org/TR/xquery-update-10/
 
-            3. XQuery Scripting Extension 1.0
+            3. XQuery Full Text 1.0
+               Recommendation / 17 March 2011
+               http://www.w3.org/TR/xpath-full-text-10/
+
+            4. XQuery Scripting Extension 1.0
                Working Draft / 8 April 2010
                http://www.w3.org/TR/xquery-sx-10/
 
-            4. XQuery Full Text 1.0
-               Recommendation / 17 March 2011
-               http://www.w3.org/TR/xpath-full-text-10/
 
 
 =============================================================================*/
@@ -1618,8 +1619,8 @@ PredefinedEntityRef
     : '&' ('lt' | 'gt' | 'apos' | 'quot' | 'amp' ) ';'
     ;
 CharRef
-    : '&#'  Digits    ';' {checkCharRef();}
-    | '&#x' HexDigits ';' {checkCharRef();}
+    : '&#x' HexDigits ';' {checkCharRef();}
+    | '&#'  Digits    ';' {checkCharRef();}
     ;
 fragment
 BracedURISymbol
