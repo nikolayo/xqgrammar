@@ -108,6 +108,7 @@ public class TestSuiteRunner
     private static final String TEST_SET            = "test-set";
     private static final String TEST_CASE           = "test-case";
     private static final String TEST                = "test";
+    private static final String DEPENDENCY          = "dependency";
     private static final String ERROR               = "error";
     private static final String QUERY               = "query";
     private static final String PARSE_ERROR         = "parse-error";
@@ -116,6 +117,8 @@ public class TestSuiteRunner
     private static final String FILE_PATH_ATTRIBUTE = "FilePath";
     private static final String FILE_ATTRIBUTE      = "file";
     private static final String CODE_ATTRIBUTE      = "code";
+    private static final String TYPE_ATTRIBUTE      = "type";
+    private static final String VALUE_ATTRIBUTE     = "value";
 
     private static enum CatalogType
     {
@@ -187,134 +190,12 @@ public class TestSuiteRunner
         failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
         passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
         failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-014");
-        failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-015");
-        failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-016");
-        failOK
             .add("prod/FunctionCall.xml:function-call-reserved-function-names-033");
+        //??
         failOK
             .add("prod/FunctionCall.xml:function-call-reserved-function-names-034");
         failOK
             .add("prod/FunctionCall.xml:function-call-reserved-function-names-035");
-        failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-039");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-001");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-003");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-005");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-007");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-009");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-011");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-013");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-015");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-017");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-019");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-021");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-023");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-025");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-027");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-029");
-        failOK
-            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-031");
-
-        // namespace axis
-        failOK
-            .add("fn/generate-id.xml:generate-id-007");
-        failOK
-            .add("fn/generate-id.xml:generate-id-011");
-        failOK
-            .add("fn/has-children.xml:fn-has-children-020");
-        failOK
-            .add("fn/has-children.xml:fn-has-children-021");
-        failOK
-            .add("fn/innermost.xml:fn-innermost-017");
-        failOK
-            .add("fn/innermost.xml:fn-innermost-018");
-        failOK
-            .add("fn/innermost.xml:fn-innermost-019");
-        failOK
-            .add("fn/innermost.xml:fn-innermost-020");
-        failOK
-            .add("fn/innermost.xml:fn-innermost-021");
-        failOK
-            .add("fn/innermost.xml:fn-innermost-022");
-        failOK
-            .add("fn/local-name.xml:fn-local-name-77");
-        failOK
-            .add("fn/name.xml:fn-name-27");
-        failOK
-            .add("fn/outermost.xml:fn-outermost-017");
-        failOK
-            .add("fn/outermost.xml:fn-outermost-018");
-        failOK
-            .add("fn/outermost.xml:fn-outermost-019");
-        failOK
-            .add("fn/outermost.xml:fn-outermost-020");
-        failOK
-            .add("fn/outermost.xml:fn-outermost-021");
-        failOK
-            .add("fn/outermost.xml:fn-outermost-022");
-        failOK
-            .add("fn/path.xml:path011");
-        failOK
-            .add("fn/path.xml:path012");
-        failOK
-            .add("fn/path.xml:path013");
-        failOK
-            .add("fn/serialize.xml:serialize-xml-012");
-        failOK
-            .add("fn/string.xml:fn-string-27");
-        failOK
-            .add("prod/AxisStep.xml:Axes114");
-        failOK
-            .add("prod/AxisStep.xml:Axes116");
-        failOK
-            .add("prod/AxisStep.xml:Axes118");
-        failOK
-            .add("prod/AxisStep.xml:Axes119");
-        failOK
-            .add("prod/AxisStep.xml:Axes120");
-        failOK
-            .add("prod/AxisStep.xml:Axes121");
-        failOK
-            .add("prod/AxisStep.xml:Axes122");
-        failOK
-            .add("prod/AxisStep.xml:Axes123");
-        failOK
-            .add("prod/AxisStep.xml:Axes124");
-        failOK
-            .add("prod/AxisStep.xml:Axes125");
-        failOK
-            .add("prod/AxisStep.xml:Axes126");
-        failOK
-            .add("prod/EQName.xml:eqname-018");
-
-        skipSuite.add("fn/parse-json.xml");
-        skipSuite.add("fn/serialize-json.xml");
-        skipSuite.add("map/collation.xml");
-        skipSuite.add("map/contains.xml");
-        skipSuite.add("map/entry.xml");
-        skipSuite.add("map/get.xml");
-        skipSuite.add("map/keys.xml");
-        skipSuite.add("map/new.xml");
-        skipSuite.add("map/remove.xml");
-        skipSuite.add("map/size.xml");
     }
 
     @Before
@@ -344,6 +225,13 @@ public class TestSuiteRunner
         System.out.println("Running tests ...");
         long cpuStart = threadMXBean.getCurrentThreadCpuTime();
         for (XQTest xqTest : tests) {
+            String spec = xqTest.getDependency("spec");
+            String feature = xqTest.getDependency("feature");
+            if ("XQ10".equals(spec) ||
+                    "XT30+".equals(spec) ||
+                    "namespace-axis".equals(feature)) {
+                continue;
+            }
             boolean failureExpected = xqTest.isFailureExpected();
             try {
                 numTests++;
@@ -469,10 +357,11 @@ public class TestSuiteRunner
 
     private static class XQTest
     {
-        private String  path;
-        private char[]  query;
-        private int     length;
-        private boolean failureExpected;
+        private String              path;
+        private char[]              query;
+        private int                 length;
+        private boolean             failureExpected;
+        private Map<String, String> dependencies = new HashMap<String, String>();
 
         public String getPath()
         {
@@ -512,6 +401,16 @@ public class TestSuiteRunner
         public void setFailureExpected(boolean failureExpected)
         {
             this.failureExpected = failureExpected;
+        }
+
+        public String getDependency(String type)
+        {
+            return dependencies.get(type);
+        }
+
+        public void putDependency(String type, String value)
+        {
+            dependencies.put(type, value);
         }
     }
 
@@ -650,12 +549,27 @@ public class TestSuiteRunner
     private static class TestSetContentHandler
         extends TestContentHandler
     {
-        private String  testSetName;
-        private boolean inTest;
-        private boolean skip;
-        private XQTest  test;
-        private char[]  query;
-        private int     length;
+        /*
+            Test dependency types:
+            spec
+            feature
+            xml-version
+            xsd-version
+            language
+            default-language
+            limits
+            calendar
+            unicode-normalization-form
+            format-integer-sequence
+         */
+        private String              testSetName;
+        private boolean             inTestCase;
+        private boolean             inTest;
+        private boolean             skip;
+        private XQTest              test;
+        private char[]              query;
+        private int                 length;
+        private Map<String, String> dependencies = new HashMap<String, String>();
 
         public TestSetContentHandler(File basePathFile, String testSetName)
         {
@@ -669,6 +583,7 @@ public class TestSuiteRunner
             throws SAXException
         {
             if (localName.equals(TEST_CASE)) {
+                inTestCase = true;
                 test = new XQTest();
                 query = new char[64];
                 length = 0;
@@ -681,8 +596,21 @@ public class TestSuiteRunner
                 String file = atts.getValue(FILE_ATTRIBUTE);
                 if (file != null && file.length() > 0) {
                     skip = true;
+                    System.out.println("Skipped include: " + test.getPath()
+                            + ":"
+                            + file);
                 }
                 inTest = true;
+            }
+            else if (localName.equals(DEPENDENCY)) {
+                String type = atts.getValue(TYPE_ATTRIBUTE);
+                String value = atts.getValue(VALUE_ATTRIBUTE);
+                if (inTestCase) {
+                    test.putDependency(type, value);
+                }
+                else {
+                    dependencies.put(type, value);
+                }
             }
             else if (localName.equals(ERROR)) {
                 String code = atts.getValue(CODE_ATTRIBUTE);
@@ -700,8 +628,15 @@ public class TestSuiteRunner
             throws SAXException
         {
             if (localName.equals(TEST_CASE)) {
+                inTestCase = false;
                 test.setQuery(query);
                 test.setLength(length);
+                Set<String> depNames = dependencies.keySet();
+                for (String name : depNames) {
+                    if (test.getDependency(name) == null) {
+                        test.putDependency(name, dependencies.get(name));
+                    }
+                }
                 if (!skip) { // !!!!!!
                     tests.add(test);
                 }
