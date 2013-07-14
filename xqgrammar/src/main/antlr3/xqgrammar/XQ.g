@@ -530,7 +530,7 @@ nodeComp
     : IS | '<<' | '>>'
     ;
 validateExpr
-    : VALIDATE validationMode? LCurly expr RCurly
+    : VALIDATE (validationMode | (TYPE typeName))? LCurly expr RCurly
     ;
 validationMode
     : LAX | STRICT
@@ -1216,6 +1216,7 @@ fncName
     | THEN
     | TO
     | TREAT
+    | TYPE
     | UNION
     | UNORDERED
     | VALIDATE                
@@ -1442,6 +1443,7 @@ TEXT                    : 'text';
 THEN                    : 'then';
 TO                      : 'to';
 TREAT                   : 'treat';
+TYPE                    : 'type';
 TYPESWITCH              : 'typeswitch';
 UNION                   : 'union';
 UNORDERED               : 'unordered';
@@ -1538,7 +1540,7 @@ SWITCH                  : 'switch';
 DECIMAL_FORMAT          : 'decimal-format';
 DECIMAL_SEPARATOR       : 'decimal-separator';
 DIGIT                   : 'digit';
-GROUPING_SEPARATOR      : 'grouping-separatpr';
+GROUPING_SEPARATOR      : 'grouping-separator';
 INFINITY                : 'infinity';
 MINUS_SIGN              : 'minus-sign';
 NAN                     : 'NaN';
