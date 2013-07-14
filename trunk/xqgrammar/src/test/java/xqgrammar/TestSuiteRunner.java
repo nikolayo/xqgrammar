@@ -143,6 +143,9 @@ public class TestSuiteRunner
     // Tests which are expected to fail with syntax error according to catalog 
     // but pass for good reason.
     private static final Set<String>              passOK              = new HashSet<String>();
+    // Test suites which must be skipped. For example - because they contain
+    // features so far not supported by the official grammar - such as maps.
+    private static final Set<String>              skipSuite           = new HashSet<String>();
 
     private static final Map<String, CatalogType> catalogTypes        = new HashMap<String, CatalogType>();
     private static final Map<String, String>      catalogNames        = new HashMap<String, String>();
@@ -166,6 +169,7 @@ public class TestSuiteRunner
         unsupportedErrors.add("XPST0001");
         unsupportedErrors.add("XPST0005");
         unsupportedErrors.add("XPST0017");
+        unsupportedErrors.add("XQST0016");
         unsupportedErrors.add("XQST0032"); // ??????
         unsupportedErrors.add("XQST0033"); // ??????
         unsupportedErrors.add("XQST0034"); // ??????
@@ -173,15 +177,144 @@ public class TestSuiteRunner
         unsupportedErrors.add("XQST0045"); // !!!!!!
         unsupportedErrors.add("XPST0080");
 
-        testSuitesBasePaths.add(XQTS_BASE);
-        //testSuitesBasePaths.add(XQ3TS_BASE);
-        testSuitesBasePaths.add(XQUTS_BASE);
-        testSuitesBasePaths.add(XQFTTS_BASE);
+        //testSuitesBasePaths.add(XQTS_BASE);
+        testSuitesBasePaths.add(XQ3TS_BASE);
+        //testSuitesBasePaths.add(XQUTS_BASE);
+        //testSuitesBasePaths.add(XQFTTS_BASE);
         //testSuitesBasePaths.add(XQGTS_BASE);
         //testSuitesBasePaths.add(ZQTS_BASE);
 
         failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
         passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-014");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-015");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-016");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-033");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-034");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-035");
+        failOK
+            .add("prod/FunctionCall.xml:function-call-reserved-function-names-039");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-001");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-003");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-005");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-007");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-009");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-011");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-013");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-015");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-017");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-019");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-021");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-023");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-025");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-027");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-029");
+        failOK
+            .add("prod/FunctionDecl.xml:function-decl-reserved-function-names-031");
+
+        // namespace axis
+        failOK
+            .add("fn/generate-id.xml:generate-id-007");
+        failOK
+            .add("fn/generate-id.xml:generate-id-011");
+        failOK
+            .add("fn/has-children.xml:fn-has-children-020");
+        failOK
+            .add("fn/has-children.xml:fn-has-children-021");
+        failOK
+            .add("fn/innermost.xml:fn-innermost-017");
+        failOK
+            .add("fn/innermost.xml:fn-innermost-018");
+        failOK
+            .add("fn/innermost.xml:fn-innermost-019");
+        failOK
+            .add("fn/innermost.xml:fn-innermost-020");
+        failOK
+            .add("fn/innermost.xml:fn-innermost-021");
+        failOK
+            .add("fn/innermost.xml:fn-innermost-022");
+        failOK
+            .add("fn/local-name.xml:fn-local-name-77");
+        failOK
+            .add("fn/name.xml:fn-name-27");
+        failOK
+            .add("fn/outermost.xml:fn-outermost-017");
+        failOK
+            .add("fn/outermost.xml:fn-outermost-018");
+        failOK
+            .add("fn/outermost.xml:fn-outermost-019");
+        failOK
+            .add("fn/outermost.xml:fn-outermost-020");
+        failOK
+            .add("fn/outermost.xml:fn-outermost-021");
+        failOK
+            .add("fn/outermost.xml:fn-outermost-022");
+        failOK
+            .add("fn/path.xml:path011");
+        failOK
+            .add("fn/path.xml:path012");
+        failOK
+            .add("fn/path.xml:path013");
+        failOK
+            .add("fn/serialize.xml:serialize-xml-012");
+        failOK
+            .add("fn/string.xml:fn-string-27");
+        failOK
+            .add("prod/AxisStep.xml:Axes114");
+        failOK
+            .add("prod/AxisStep.xml:Axes116");
+        failOK
+            .add("prod/AxisStep.xml:Axes118");
+        failOK
+            .add("prod/AxisStep.xml:Axes119");
+        failOK
+            .add("prod/AxisStep.xml:Axes120");
+        failOK
+            .add("prod/AxisStep.xml:Axes121");
+        failOK
+            .add("prod/AxisStep.xml:Axes122");
+        failOK
+            .add("prod/AxisStep.xml:Axes123");
+        failOK
+            .add("prod/AxisStep.xml:Axes124");
+        failOK
+            .add("prod/AxisStep.xml:Axes125");
+        failOK
+            .add("prod/AxisStep.xml:Axes126");
+        failOK
+            .add("prod/EQName.xml:eqname-018");
+
+        skipSuite.add("fn/parse-json.xml");
+        skipSuite.add("fn/serialize-json.xml");
+        skipSuite.add("map/collation.xml");
+        skipSuite.add("map/contains.xml");
+        skipSuite.add("map/entry.xml");
+        skipSuite.add("map/get.xml");
+        skipSuite.add("map/keys.xml");
+        skipSuite.add("map/new.xml");
+        skipSuite.add("map/remove.xml");
+        skipSuite.add("map/size.xml");
     }
 
     @Before
@@ -481,21 +614,25 @@ public class TestSuiteRunner
             if (localName.equals(TEST_SET)) {
                 try {
                     String testSetFileName = atts.getValue(FILE_ATTRIBUTE);
-                    File testSet = new File(basePathFile, testSetFileName);
-                    FileInputStream is;
-                    is = new FileInputStream(testSet);
-                    InputSource src = new InputSource(is);
-                    TestContentHandler testSetContentHandler =
-                        new TestSetContentHandler(basePathFile, testSetFileName);
-                    SAXParserFactory factory = SAXParserFactory.newInstance();
-                    factory.setNamespaceAware(true);
-                    SAXParser parser = factory.newSAXParser();
-                    XMLReader reader = parser.getXMLReader();
-                    reader.setEntityResolver(testSetContentHandler);
-                    reader.setContentHandler(testSetContentHandler);
-                    reader.parse(src);
+                    if (!skipSuite.contains(testSetFileName)) {
+                        File testSet = new File(basePathFile, testSetFileName);
+                        FileInputStream is;
+                        is = new FileInputStream(testSet);
+                        InputSource src = new InputSource(is);
+                        TestContentHandler testSetContentHandler =
+                            new TestSetContentHandler(basePathFile,
+                                                      testSetFileName);
+                        SAXParserFactory factory = SAXParserFactory
+                            .newInstance();
+                        factory.setNamespaceAware(true);
+                        SAXParser parser = factory.newSAXParser();
+                        XMLReader reader = parser.getXMLReader();
+                        reader.setEntityResolver(testSetContentHandler);
+                        reader.setContentHandler(testSetContentHandler);
+                        reader.parse(src);
 
-                    tests.addAll(testSetContentHandler.getTests());
+                        tests.addAll(testSetContentHandler.getTests());
+                    }
                 }
                 catch (Exception e) {
                     throw new RuntimeException(e);
@@ -515,6 +652,7 @@ public class TestSuiteRunner
     {
         private String  testSetName;
         private boolean inTest;
+        private boolean skip;
         private XQTest  test;
         private char[]  query;
         private int     length;
@@ -534,11 +672,16 @@ public class TestSuiteRunner
                 test = new XQTest();
                 query = new char[64];
                 length = 0;
+                skip = false;
                 String name = atts.getValue(NAME_ATTRIBUTE);
                 String fullName = testSetName + ":" + name;
                 test.setPath(fullName);
             }
             if (localName.equals(TEST)) {
+                String file = atts.getValue(FILE_ATTRIBUTE);
+                if (file != null && file.length() > 0) {
+                    skip = true;
+                }
                 inTest = true;
             }
             else if (localName.equals(ERROR)) {
@@ -559,7 +702,9 @@ public class TestSuiteRunner
             if (localName.equals(TEST_CASE)) {
                 test.setQuery(query);
                 test.setLength(length);
-                tests.add(test);
+                if (!skip) { // !!!!!!
+                    tests.add(test);
+                }
                 test = null;
                 query = null;
                 length = 0;
