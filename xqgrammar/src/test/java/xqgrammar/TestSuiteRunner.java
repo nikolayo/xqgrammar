@@ -76,9 +76,11 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -99,53 +101,92 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class TestSuiteRunner
 {
-    private static final String CUSTOM_CATALOG_NAME = "tests.txt";
     private static final String ERROR_EXPECTED_MARK = "@";
 
-    private static final String W3C_CATALOG_NAME    = "Catalog.xml";
     private static final String QUERIES_BASE        = "Queries/XQuery";
     private static final String QUERY_SUFFIX        = ".xq";
+    private static final String TEST_SET            = "test-set";
     private static final String TEST_CASE           = "test-case";
+    private static final String TEST                = "test";
+    private static final String ERROR               = "error";
     private static final String QUERY               = "query";
     private static final String PARSE_ERROR         = "parse-error";
     private static final String NAME_ATTRIBUTE      = "name";
     private static final String SCENARIO_ATTRIBUTE  = "scenario";
     private static final String FILE_PATH_ATTRIBUTE = "FilePath";
+    private static final String FILE_ATTRIBUTE      = "file";
+    private static final String CODE_ATTRIBUTE      = "code";
+
+    private static enum CatalogType
+    {
+        OLD_XML, NEW_XML, TEXT
+    };
 
     // Absolute base paths of test suites.
     // Change these to your specific paths.
-    private static final String XQTS_BASE           = "/home/nikolay/Work/XQTS";
-    private static final String XQUTS_BASE          =
-                                                        "/home/nikolay/Work/xquery-update-10-test-suite";
-    private static final String XQFTTS_BASE         =
-                                                        "/home/nikolay/Work/XQFTTS";
-    private static final String XQGTS_BASE          =
-                                                        "/home/nikolay/Work/XQGTS";
-    private static final String ZQTS_BASE           =
-                                                        "/home/nikolay/Projects/tribe/"
-                                                                + "zulu/src/main/resources/";
-
+    private static final String                   XQTS_BASE           = "/home/nikolay/Work/XQTS";
+    private static final String                   XQ3TS_BASE          = "/home/nikolay/Work/QT3_1_0";
+    private static final String                   XQUTS_BASE          =
+                                                                          "/home/nikolay/Work/xquery-update-10-test-suite";
+    private static final String                   XQFTTS_BASE         =
+                                                                          "/home/nikolay/Work/XQFTTS";
+    private static final String                   XQGTS_BASE          =
+                                                                          "/home/nikolay/Work/XQGTS";
+    private static final String                   ZQTS_BASE           =
+                                                                          "/home/nikolay/Projects/tribe_head/"
+                                                                                  + "zulu/src/main/resources/";
     // List of base paths for all test suites to be run.
-    private final List<String>  testSuitesBasePaths = new ArrayList<String>();
-
+    private static final List<String>             testSuitesBasePaths = new ArrayList<String>();
     // Tests which are expected to pass according to catalog 
     // but fail with syntax error for good reason.
-    private final Set<String>   failOK              = new HashSet<String>();
+    private static final Set<String>              failOK              = new HashSet<String>();
     // Tests which are expected to fail with syntax error according to catalog 
     // but pass for good reason.
-    private final Set<String>   passOK              = new HashSet<String>();
+    private static final Set<String>              passOK              = new HashSet<String>();
+
+    private static final Map<String, CatalogType> catalogTypes        = new HashMap<String, CatalogType>();
+    private static final Map<String, String>      catalogNames        = new HashMap<String, String>();
+    private static final Set<String>              unsupportedErrors   = new HashSet<String>();
+
+    static {
+        catalogTypes.put(XQTS_BASE, CatalogType.OLD_XML);
+        catalogTypes.put(XQ3TS_BASE, CatalogType.NEW_XML);
+        catalogTypes.put(XQUTS_BASE, CatalogType.OLD_XML);
+        catalogTypes.put(XQFTTS_BASE, CatalogType.OLD_XML);
+        catalogTypes.put(XQGTS_BASE, CatalogType.TEXT);
+        catalogTypes.put(ZQTS_BASE, CatalogType.TEXT);
+
+        catalogNames.put(XQTS_BASE, "XQTSCatalog.xml");
+        catalogNames.put(XQ3TS_BASE, "catalog.xml");
+        catalogNames.put(XQUTS_BASE, "XQUTSCatalog.xml");
+        catalogNames.put(XQFTTS_BASE, "XQFTTSCatalog.xml");
+        catalogNames.put(XQGTS_BASE, "tests.txt");
+        catalogNames.put(ZQTS_BASE, "tests.txt");
+
+        unsupportedErrors.add("XPST0001");
+        unsupportedErrors.add("XPST0005");
+        unsupportedErrors.add("XPST0017");
+        unsupportedErrors.add("XQST0032"); // ??????
+        unsupportedErrors.add("XQST0033"); // ??????
+        unsupportedErrors.add("XQST0034"); // ??????
+        unsupportedErrors.add("XQST0035"); // ??????
+        unsupportedErrors.add("XQST0045"); // !!!!!!
+        unsupportedErrors.add("XPST0080");
+
+        testSuitesBasePaths.add(XQTS_BASE);
+        //testSuitesBasePaths.add(XQ3TS_BASE);
+        testSuitesBasePaths.add(XQUTS_BASE);
+        testSuitesBasePaths.add(XQFTTS_BASE);
+        //testSuitesBasePaths.add(XQGTS_BASE);
+        //testSuitesBasePaths.add(ZQTS_BASE);
+
+        failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
+        passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
+    }
 
     @Before
     public void init()
     {
-        testSuitesBasePaths.add(XQTS_BASE);
-        testSuitesBasePaths.add(XQUTS_BASE);
-        testSuitesBasePaths.add(XQFTTS_BASE);
-        testSuitesBasePaths.add(XQGTS_BASE);
-        testSuitesBasePaths.add(ZQTS_BASE);
-
-        failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
-        passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
     }
 
     @Ignore
@@ -175,17 +216,16 @@ public class TestSuiteRunner
                 numTests++;
                 parse(xqTest.getQuery(), xqTest.getLength());
                 if (failureExpected && !passOK.contains(xqTest.getPath())) {
-                    System.out.println("Failed to register error in file "
-                            + xqTest.getPath());
                     ++numErrors;
+                    System.out.println("Failed to register error in test "
+                            + xqTest.getPath());
                 }
             }
             catch (Throwable e) {
                 if (!failureExpected && !failOK.contains(xqTest.getPath())) {
-                    System.out.println(e.getMessage());
                     numErrors++;
                     System.out.println();
-                    System.out.println("Failed to parse file "
+                    System.out.println("Failed to parse test "
                             + xqTest.getPath());
                 }
             }
@@ -205,15 +245,45 @@ public class TestSuiteRunner
         throws IOException, ParserConfigurationException, SAXException
 
     {
-        File basePathFile = new File(testSuiteBasePath);
-        File customCatalogFile = new File(basePathFile, CUSTOM_CATALOG_NAME);
+        CatalogType catalogType = catalogTypes.get(testSuiteBasePath);
+        String catalogName = catalogNames.get(testSuiteBasePath);
 
-        if (customCatalogFile.exists()) {
-            return scanCustomCatalog(basePathFile, customCatalogFile);
+        File basePathFile = new File(testSuiteBasePath);
+        File catalogFile = new File(basePathFile, catalogName);
+
+        if (catalogType.equals(CatalogType.TEXT)) {
+            return scanCustomCatalog(basePathFile, catalogFile);
         }
         else {
-            return scanW3cCatalog(basePathFile);
+            return scanW3cCatalog(basePathFile, catalogFile);
         }
+    }
+
+    private Set<XQTest> scanW3cCatalog(File basePathFile, File catalog)
+        throws ParserConfigurationException, SAXException, IOException
+
+    {
+        CatalogType catalogType = catalogTypes.get(
+            basePathFile.getPath());
+        FileInputStream is = new FileInputStream(catalog);
+        InputSource src = new InputSource(is);
+
+        TestContentHandler catalogContentHandler = null;
+        if (catalogType == CatalogType.OLD_XML) {
+            catalogContentHandler = new OldCatalogContentHandler(basePathFile);
+        }
+        else {
+            catalogContentHandler = new NewCatalogContentHandler(basePathFile);
+        }
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        SAXParser parser = factory.newSAXParser();
+        XMLReader reader = parser.getXMLReader();
+        reader.setEntityResolver(catalogContentHandler);
+        reader.setContentHandler(catalogContentHandler);
+        reader.parse(src);
+
+        return catalogContentHandler.getTests();
     }
 
     private Collection<XQTest> scanCustomCatalog(File basePathFile,
@@ -249,39 +319,6 @@ public class TestSuiteRunner
         testListReader.close();
         return tests;
 
-    }
-
-    private Set<XQTest> scanW3cCatalog(File basePathFile)
-        throws ParserConfigurationException, SAXException, IOException
-
-    {
-        File catalog = null;
-        String[] fileList = basePathFile.list();
-
-        for (String fileName : fileList) {
-            if (fileName.endsWith(W3C_CATALOG_NAME)) {
-                catalog = new File(basePathFile, fileName);
-                break;
-            }
-        }
-        if (catalog == null) {
-            throw new IOException("Failed to locate catalog.");
-        }
-
-        FileInputStream is = new FileInputStream(catalog);
-        InputSource src = new InputSource(is);
-
-        CatalogContentHandler catalogContentHandler =
-            new CatalogContentHandler(basePathFile);
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        factory.setNamespaceAware(true);
-        SAXParser parser = factory.newSAXParser();
-        XMLReader reader = parser.getXMLReader();
-        reader.setEntityResolver(catalogContentHandler);
-        reader.setContentHandler(catalogContentHandler);
-        reader.parse(src);
-
-        return catalogContentHandler.getTests();
     }
 
     private void parse(char[] query, int length)
@@ -345,22 +382,27 @@ public class TestSuiteRunner
         }
     }
 
-    private static class CatalogContentHandler
+    private static class TestContentHandler
         extends DefaultHandler
     {
-        private final File        basePathFile;
-        private final Set<XQTest> tests           = new LinkedHashSet<XQTest>();
-        private boolean           failureExpected = false;
-        private String            path            = null;
-
-        public CatalogContentHandler(File basePathFile)
-        {
-            this.basePathFile = basePathFile;
-        }
+        protected File        basePathFile;
+        protected Set<XQTest> tests           = new LinkedHashSet<XQTest>();
+        protected boolean     failureExpected = false;
+        protected String      path            = null;
 
         public Set<XQTest> getTests()
         {
             return tests;
+        }
+
+    }
+
+    private static class OldCatalogContentHandler
+        extends TestContentHandler
+    {
+        public OldCatalogContentHandler(File basePathFile)
+        {
+            this.basePathFile = basePathFile;
         }
 
         @Override
@@ -419,6 +461,128 @@ public class TestSuiteRunner
         {
             if (localName.equals(TEST_CASE)) {
                 path = null;
+            }
+        }
+    }
+
+    private static class NewCatalogContentHandler
+        extends TestContentHandler
+    {
+        public NewCatalogContentHandler(File basePathFile)
+        {
+            this.basePathFile = basePathFile;
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName,
+                                 Attributes atts)
+            throws SAXException
+        {
+            if (localName.equals(TEST_SET)) {
+                try {
+                    String testSetFileName = atts.getValue(FILE_ATTRIBUTE);
+                    File testSet = new File(basePathFile, testSetFileName);
+                    FileInputStream is;
+                    is = new FileInputStream(testSet);
+                    InputSource src = new InputSource(is);
+                    TestContentHandler testSetContentHandler =
+                        new TestSetContentHandler(basePathFile, testSetFileName);
+                    SAXParserFactory factory = SAXParserFactory.newInstance();
+                    factory.setNamespaceAware(true);
+                    SAXParser parser = factory.newSAXParser();
+                    XMLReader reader = parser.getXMLReader();
+                    reader.setEntityResolver(testSetContentHandler);
+                    reader.setContentHandler(testSetContentHandler);
+                    reader.parse(src);
+
+                    tests.addAll(testSetContentHandler.getTests());
+                }
+                catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName)
+            throws SAXException
+        {
+        }
+    }
+
+    private static class TestSetContentHandler
+        extends TestContentHandler
+    {
+        private String  testSetName;
+        private boolean inTest;
+        private XQTest  test;
+        private char[]  query;
+        private int     length;
+
+        public TestSetContentHandler(File basePathFile, String testSetName)
+        {
+            this.testSetName = testSetName;
+            this.basePathFile = basePathFile;
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName,
+                                 Attributes atts)
+            throws SAXException
+        {
+            if (localName.equals(TEST_CASE)) {
+                test = new XQTest();
+                query = new char[64];
+                length = 0;
+                String name = atts.getValue(NAME_ATTRIBUTE);
+                String fullName = testSetName + ":" + name;
+                test.setPath(fullName);
+            }
+            if (localName.equals(TEST)) {
+                inTest = true;
+            }
+            else if (localName.equals(ERROR)) {
+                String code = atts.getValue(CODE_ATTRIBUTE);
+                if (code != null &&
+                        !unsupportedErrors.contains(code) && (
+                        code.startsWith("XPS") ||
+                        code.startsWith("XQS"))) {
+                    test.setFailureExpected(true);
+                }
+            }
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName)
+            throws SAXException
+        {
+            if (localName.equals(TEST_CASE)) {
+                test.setQuery(query);
+                test.setLength(length);
+                tests.add(test);
+                test = null;
+                query = null;
+                length = 0;
+            }
+            else if (localName.equals(TEST)) {
+                inTest = false;
+            }
+        }
+
+        @Override
+        public void characters(char[] ch,
+                               int start,
+                               int len)
+        {
+            if (inTest) {
+                int lengthNeeded = length + len;
+                if (query.length < lengthNeeded) {
+                    char[] newQuery = new char[2 * lengthNeeded];
+                    System.arraycopy(query, 0, newQuery, 0, length);
+                    query = newQuery;
+                }
+                System.arraycopy(ch, start, query, length, len);
+                length = lengthNeeded;
             }
         }
     }
