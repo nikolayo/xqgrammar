@@ -152,6 +152,8 @@ public class TestSuiteRunner
 
     private static final Map<String, CatalogType> catalogTypes        = new HashMap<String, CatalogType>();
     private static final Map<String, String>      catalogNames        = new HashMap<String, String>();
+    private static final Set<String>              unsupportedSpecs    = new HashSet<String>();
+    private static final Set<String>              unsupportedFeatures = new HashSet<String>();
     private static final Set<String>              unsupportedErrors   = new HashSet<String>();
 
     static {
@@ -169,6 +171,11 @@ public class TestSuiteRunner
         catalogNames.put(XQGTS_BASE, "tests.txt");
         catalogNames.put(ZQTS_BASE, "tests.txt");
 
+        unsupportedSpecs.add("XQ10");
+        unsupportedSpecs.add("XT30+");
+        unsupportedFeatures.add("namespace-axis");
+
+        /*
         unsupportedErrors.add("XPST0001");
         unsupportedErrors.add("XPST0005");
         unsupportedErrors.add("XPST0017");
@@ -179,6 +186,7 @@ public class TestSuiteRunner
         unsupportedErrors.add("XQST0035"); // ??????
         unsupportedErrors.add("XQST0045"); // !!!!!!
         unsupportedErrors.add("XPST0080");
+        */
 
         //testSuitesBasePaths.add(XQTS_BASE);
         testSuitesBasePaths.add(XQ3TS_BASE);
@@ -189,13 +197,6 @@ public class TestSuiteRunner
 
         failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
         passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
-        failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-033");
-        //??
-        failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-034");
-        failOK
-            .add("prod/FunctionCall.xml:function-call-reserved-function-names-035");
     }
 
     @Before
@@ -227,9 +228,8 @@ public class TestSuiteRunner
         for (XQTest xqTest : tests) {
             String spec = xqTest.getDependency("spec");
             String feature = xqTest.getDependency("feature");
-            if ("XQ10".equals(spec) ||
-                    "XT30+".equals(spec) ||
-                    "namespace-axis".equals(feature)) {
+            if (unsupportedSpecs.contains(spec) ||
+                    unsupportedFeatures.contains(feature)) {
                 continue;
             }
             boolean failureExpected = xqTest.isFailureExpected();
@@ -563,6 +563,7 @@ public class TestSuiteRunner
             format-integer-sequence
          */
         private String              testSetName;
+        private String              testSetRelPath;
         private boolean             inTestCase;
         private boolean             inTest;
         private boolean             skip;
@@ -575,6 +576,8 @@ public class TestSuiteRunner
         {
             this.testSetName = testSetName;
             this.basePathFile = basePathFile;
+            testSetRelPath = testSetName.substring(0,
+                testSetName.lastIndexOf('/'));
         }
 
         @Override
@@ -595,10 +598,19 @@ public class TestSuiteRunner
             if (localName.equals(TEST)) {
                 String file = atts.getValue(FILE_ATTRIBUTE);
                 if (file != null && file.length() > 0) {
-                    skip = true;
-                    System.out.println("Skipped include: " + test.getPath()
-                            + ":"
-                            + file);
+                    File queryFile = new File(basePathFile, testSetRelPath
+                            + "/" + file);
+                    query = new char[(int) queryFile.length()];
+                    try {
+                        BufferedReader testReader =
+                            new BufferedReader(new FileReader(queryFile));
+                        length = testReader.read(query, 0, query.length);
+                        testReader.close();
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
                 }
                 inTest = true;
             }
