@@ -1,6 +1,6 @@
 /*=============================================================================
 
-    Copyright 2009 Nikolay Ognyanov
+    Copyright(c) 2009-2013 by Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -42,13 +42,11 @@ II.  XQuery Update    1.0 : 100% pass
 
 III. XQuery Free Text 1.0 : 100% pass.
 
-IV.  XQuery 3.0 :
-     99.95 percent of the relevant tests which are supposed to be parsed
-     without error are parsed successfully. The failing 13 tests are mostly
-     lexical.
+IV.  XQuery 3.0           : 99.95% pass
+     Note:
      For some 1000+ tests the parser fails to register an error which is
      expected according to the test specifications. The XQuery 3.0 suite
-     does not distinguish between purely syntax errors and errors which can
+     does not distinguish between pure syntax errors and errors which can
      only be discovered based on the compile time semantic context or based
      on the runtime context. Therefore it is not clear what part of these
      tests are passed by the parser.
