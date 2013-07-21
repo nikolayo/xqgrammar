@@ -563,7 +563,7 @@ axisStep
     : (reverseStep | forwardStep) predicateList
     ;
 forwardStep
-    : (forwardAxis nodeTest)
+    : forwardAxis nodeTest
     | abbrevForwardStep
     ;
 forwardAxis
@@ -579,7 +579,7 @@ abbrevForwardStep
     : '@'? nodeTest
     ;
 reverseStep
-    : (reverseAxis nodeTest)
+    : reverseAxis nodeTest
     | abbrevReverseStep
     ;
 reverseAxis
@@ -774,7 +774,7 @@ namedFunctionRef
     : eQName '#' IntegerLiteral
     ;
 inlineFunctionExpr
-    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
+    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? functionBody
     ;
 singleType
     : simpleTypeName '?'?
