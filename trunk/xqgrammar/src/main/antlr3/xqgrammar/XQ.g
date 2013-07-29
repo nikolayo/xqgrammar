@@ -1608,12 +1608,12 @@ DoubleLiteral
 StringLiteral
     : Quot (
           options {greedy=false;}:
-          (PredefinedEntityRef | CharRef | EscapeQuot | ~('"'  | '&'))*
+          (PredefinedEntityRef | CharRef | EscapeQuot | ~(Quot  | '&'))*
       )
       Quot  
     | Apos (
           options {greedy=false;}:
-          (PredefinedEntityRef | CharRef | EscapeApos | ~('\'' | '&'))*
+          (PredefinedEntityRef | CharRef | EscapeApos | ~(Apos | '&'))*
       )
       Apos
     ;
@@ -1626,10 +1626,10 @@ CharRef
     ;
 fragment
 BracedURISymbol
-    : PredefinedEntityRef | CharRef | ~('&'|'{'|'}')
+    : PredefinedEntityRef | CharRef | ~('&'|LCurly|RCurly)
     ;
 BracedURILiteral
-    : 'Q{' BracedURISymbol* '}'
+    : 'Q{' BracedURISymbol* RCurly
     ;
 Comment
     : '(:' (options {greedy=false;}: Comment | . )* ':)' { $channel = HIDDEN; }
