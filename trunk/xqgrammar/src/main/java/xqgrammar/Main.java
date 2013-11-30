@@ -20,6 +20,7 @@ package xqgrammar;
 import java.io.File;
 
 import org.antlr.runtime.ANTLRFileStream;
+import org.antlr.runtime.TokenStream;
 
 /**
  * A simple driver program for the XQuery parser.
@@ -32,43 +33,42 @@ public class Main
             System.out.println("Usage : java -jar xqgrammar file ...");
         }
         else {
-            int nameLength = 0;
-            for (String s : arg) {
-                if (s.length() > nameLength) {
-                    nameLength = s.length();
-                }
-            }
-            StringBuffer sb = new StringBuffer();
-
             for (String fileName : arg) {
                 if (!(new File(fileName).exists())) {
-                    System.out.print(fileName);
-                    for (int i = 0; i < nameLength - fileName.length(); i++) {
-                        sb.append(' ');
-                    }
-                    System.out.print(sb + " : ");
-                    sb.delete(0, sb.length());
-                    System.out.println("Not Found");
+                    System.out.println(fileName);
+                    System.out.println("\tfile not found");
                 }
                 else {
                     try {
-                        System.out.print(fileName);
-                        for (int i = 0; i < nameLength - fileName.length(); i++) {
-                            sb.append(' ');
-                        }
-                        System.out.print(sb + " : ");
-                        sb.delete(0, sb.length());
+                        System.out.println(fileName);
                         ANTLRFileStream input = new ANTLRFileStream(fileName);
                         XQLexer lexer = new XQLexer(input);
                         XQTokenStream tokenStream = new XQTokenStream(lexer);
-                        XQParser parser = new XQParser(tokenStream);
+                        XQParser parser = new MyParser(tokenStream);
+                        parser.setBreakOnError(false);
                         parser.module();
-                        System.out.println("OK");
                     }
                     catch (Exception e) {
+                        System.out.println(e.getMessage());
                     }
                 }
             }
+        }
+    }
+
+    private static class MyParser
+        extends XQParser
+    {
+
+        public MyParser(TokenStream input)
+        {
+            super(input);
+        }
+
+        @Override
+        public void emitErrorMessage(String message)
+        {
+            System.err.println("\t" + message);
         }
     }
 }
