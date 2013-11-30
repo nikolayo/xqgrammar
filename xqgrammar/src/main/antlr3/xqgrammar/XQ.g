@@ -657,7 +657,7 @@ unorderedExpr
     : UNORDERED LCurly expr RCurly
     ;
 functionCall                        // xgs:reserved-function-names // gn:parens
-    : fqName argumentList
+    : efQName argumentList
     ;
 argument
     : exprSingle
