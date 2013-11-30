@@ -563,7 +563,7 @@ axisStep
     : (reverseStep | forwardStep) predicateList
     ;
 forwardStep
-    : (forwardAxis nodeTest)
+    : forwardAxis nodeTest
     | abbrevForwardStep
     ;
 forwardAxis
@@ -579,7 +579,7 @@ abbrevForwardStep
     : '@'? nodeTest
     ;
 reverseStep
-    : (reverseAxis nodeTest)
+    : reverseAxis nodeTest
     | abbrevReverseStep
     ;
 reverseAxis
@@ -657,7 +657,7 @@ unorderedExpr
     : UNORDERED LCurly expr RCurly
     ;
 functionCall                        // xgs:reserved-function-names // gn:parens
-    : fqName argumentList
+    : efQName argumentList
     ;
 argument
     : exprSingle
@@ -774,7 +774,7 @@ namedFunctionRef
     : eQName '#' IntegerLiteral
     ;
 inlineFunctionExpr
-    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? enclosedExpr
+    : annotation* FUNCTION '(' paramList? ')' (AS sequenceType)? functionBody
     ;
 singleType
     : simpleTypeName '?'?
@@ -1608,12 +1608,12 @@ DoubleLiteral
 StringLiteral
     : Quot (
           options {greedy=false;}:
-          (PredefinedEntityRef | CharRef | EscapeQuot | ~('"'  | '&'))*
+          (PredefinedEntityRef | CharRef | EscapeQuot | ~(Quot  | '&'))*
       )
       Quot  
     | Apos (
           options {greedy=false;}:
-          (PredefinedEntityRef | CharRef | EscapeApos | ~('\'' | '&'))*
+          (PredefinedEntityRef | CharRef | EscapeApos | ~(Apos | '&'))*
       )
       Apos
     ;
@@ -1626,10 +1626,10 @@ CharRef
     ;
 fragment
 BracedURISymbol
-    : PredefinedEntityRef | CharRef | ~('&'|'{'|'}')
+    : PredefinedEntityRef | CharRef | ~('&'|LCurly|RCurly)
     ;
 BracedURILiteral
-    : 'Q{' BracedURISymbol* '}'
+    : 'Q{' BracedURISymbol* RCurly
     ;
 Comment
     : '(:' (options {greedy=false;}: Comment | . )* ':)' { $channel = HIDDEN; }
