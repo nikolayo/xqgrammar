@@ -36,7 +36,7 @@ public class Main
             for (String fileName : arg) {
                 if (!(new File(fileName).exists())) {
                     System.out.println(fileName);
-                    System.out.println("\tfile not found");
+                    System.out.println("\t" + fileName + ": file not found");
                 }
                 else {
                     try {
@@ -44,12 +44,12 @@ public class Main
                         ANTLRFileStream input = new ANTLRFileStream(fileName);
                         XQLexer lexer = new XQLexer(input);
                         XQTokenStream tokenStream = new XQTokenStream(lexer);
-                        XQParser parser = new MyParser(tokenStream);
+                        MyParser parser = new MyParser(tokenStream);
                         parser.setBreakOnError(false);
+                        parser.setFileName(fileName);
                         parser.module();
                     }
                     catch (Exception e) {
-                        System.out.println(e.getMessage());
                     }
                 }
             }
@@ -59,16 +59,27 @@ public class Main
     private static class MyParser
         extends XQParser
     {
+        private String fileName;
 
         public MyParser(TokenStream input)
         {
             super(input);
         }
 
+        public String getFileName()
+        {
+            return fileName;
+        }
+
+        public void setFileName(String fileName)
+        {
+            this.fileName = fileName;
+        }
+
         @Override
         public void emitErrorMessage(String message)
         {
-            System.err.println("\t" + message);
+            System.err.println("\t" + getFileName() + ": " + message);
         }
     }
 }
