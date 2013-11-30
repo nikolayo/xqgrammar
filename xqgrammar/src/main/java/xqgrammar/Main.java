@@ -36,7 +36,8 @@ public class Main
             for (String fileName : arg) {
                 if (!(new File(fileName).exists())) {
                     System.out.println(fileName);
-                    System.out.println("\t" + fileName + ": file not found");
+                    System.out.println("\t" + fileName
+                            + ": Error - file not found");
                 }
                 else {
                     try {
@@ -79,7 +80,7 @@ public class Main
         @Override
         public void emitErrorMessage(String message)
         {
-            System.err.println("\t" + getFileName() + ": " + message);
+            System.err.println("\t" + getFileName() + ": Error - " + message);
         }
     }
 }
