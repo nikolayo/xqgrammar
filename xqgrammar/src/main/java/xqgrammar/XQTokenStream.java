@@ -21,6 +21,7 @@ package xqgrammar;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.TokenStream;
@@ -33,13 +34,15 @@ import org.antlr.runtime.TokenStream;
 public class XQTokenStream
     implements TokenStream
 {
-    private TokenSource tokenSource;
-    private int         channel     = Token.DEFAULT_CHANNEL;
-    private List<Token> tokens      = new ArrayList<Token>();
-    private int         index       = -1;
-    private int         lastMarker;
-    private String[]    tokenNames;
-    boolean             spaceBefore = false;
+    private static final Token EOF_TOKEN   = new CommonToken(Token.EOF);
+    private TokenSource        tokenSource;
+    private int                channel     = Token.DEFAULT_CHANNEL;
+    private List<Token>        tokens      = new ArrayList<Token>();
+    private int                index       = -1;
+    private int                range       = -1;
+    private int                lastMarker;
+    private String[]           tokenNames;
+    boolean                    spaceBefore = false;
 
     public XQTokenStream(TokenSource tokenSource)
     {
@@ -70,8 +73,17 @@ public class XQTokenStream
     }
 
     @Override
+    public int range()
+    {
+        return range;
+    }
+
+    @Override
     public Token get(int i)
     {
+        if (i > range) {
+            range = i;
+        }
         return tokens.get(i);
     }
 
@@ -86,12 +98,16 @@ public class XQTokenStream
                 return null;
             }
             if (!ensureSize(index + offset + 1))
-                return Token.EOF_TOKEN;
+                return EOF_TOKEN;
             return tokens.get(index + offset);
         }
 
         if (!ensureSize(index + offset + 1))
-            return Token.EOF_TOKEN;
+            return EOF_TOKEN;
+        if (index + offset > range) {
+            range = index + offset;
+        }
+
         return tokens.get(index + offset);
     }
 
@@ -181,13 +197,18 @@ public class XQTokenStream
         }
         while (tokens.size() < size) {
             Token nextToken = tokenSource.nextToken();
-            if (nextToken == Token.EOF_TOKEN) {
+            if (nextToken.getType() == Token.EOF) {
                 return false;
             }
             if (nextToken.getChannel() == channel) {
-                ((XQToken) nextToken).spaceBefore = spaceBefore;
-                spaceBefore = false;
-                tokens.add(nextToken);
+                if (nextToken instanceof XQToken) {
+                    ((XQToken) nextToken).spaceBefore = spaceBefore;
+                    spaceBefore = false;
+                    tokens.add(nextToken);
+                }
+                else {
+                    //System.out.println(nextToken.getClass());
+                }
                 /*
                 if (tokenNames != null) {
                     System.out.println(tokenNames[nextToken.getType()] + "("
