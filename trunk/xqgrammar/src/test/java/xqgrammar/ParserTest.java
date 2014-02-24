@@ -49,7 +49,7 @@ public class ParserTest
             XQParser parser = new XQParser(tokens);
             tokens.setTokenNames(parser.getTokenNames());
             parser.module();
-            assertTrue(tokens.LT(1) == Token.EOF_TOKEN);
+            assertTrue(tokens.LT(1).getType() == Token.EOF);
             assertTrue(lexer.getNumberOfSyntaxErrors() == 0);
             assertTrue(parser.getNumberOfSyntaxErrors() == 0);
         }

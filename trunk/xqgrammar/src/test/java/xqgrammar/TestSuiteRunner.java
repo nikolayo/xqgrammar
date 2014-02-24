@@ -140,7 +140,7 @@ public class TestSuiteRunner
     private static final String                   XQTS_BASE           = "/home/nikolay/Work/XQTS";
     private static final String                   XQ3TS_BASE          = "/home/nikolay/Work/QT3_1_0";
     private static final String                   XQUTS_BASE          =
-                                                                          "/home/nikolay/Work/xquery-update-10-test-suite";
+                                                                          "/home/nikolay/Work/XQUTS_1_0_1";
     private static final String                   XQFTTS_BASE         =
                                                                           "/home/nikolay/Work/XQFTTS";
     private static final String                   XQGTS_BASE          =
@@ -202,8 +202,8 @@ public class TestSuiteRunner
         testSuitesBasePaths.add(XQ3TS_BASE);
         testSuitesBasePaths.add(XQUTS_BASE);
         testSuitesBasePaths.add(XQFTTS_BASE);
-        //testSuitesBasePaths.add(XQGTS_BASE);
-        //testSuitesBasePaths.add(ZQTS_BASE);
+        testSuitesBasePaths.add(XQGTS_BASE);
+        testSuitesBasePaths.add(ZQTS_BASE);
 
         failOK.add("Expressions/PrologExpr/VersionProlog/prolog-version-2.xq");
         passOK.add("Expressions/FLWORExpr/WhereExpr/WhereExpr020.xq");
@@ -283,11 +283,12 @@ public class TestSuiteRunner
                 }
             }
             catch (Throwable e) {
-                if (!failureExpected && !failOK.contains(xqTest.getPath())) {
-                    numErrors++;
-                    System.out.println();
+                if (!failureExpected) {
                     System.out.println("Failed to parse test "
                             + xqTest.getPath());
+                    if (!failOK.contains(xqTest.getPath())) {
+                        numErrors++;
+                    }
                 }
             }
         }
@@ -390,7 +391,7 @@ public class TestSuiteRunner
         XQTokenStream tokenStream = new XQTokenStream(lexer);
         XQParser parser = new XQParser(tokenStream);
         parser.module();
-        if (tokenStream.LT(1) != Token.EOF_TOKEN) {
+        if (tokenStream.LT(1).getType() != Token.EOF) {
             throw new RuntimeException("Extra input after end of expression.");
         }
     }
