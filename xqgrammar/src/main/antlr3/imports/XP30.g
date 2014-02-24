@@ -299,7 +299,7 @@ contextItemExpr
     : '.'
     ;
 functionCall                        // xgs:reserved-function-names // gn:parens
-    : fqName argumentList
+    : efqName argumentList
     ;
 argument
     : exprSingle
