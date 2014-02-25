@@ -5,7 +5,7 @@
   <groupId>xqgrammar</groupId>
   <artifactId>xqgrammar</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
   <name>xqgrammar</name>
   <url>http://maven.apache.org</url>
 
