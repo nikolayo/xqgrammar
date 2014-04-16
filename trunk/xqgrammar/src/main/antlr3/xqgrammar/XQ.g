@@ -1,6 +1,6 @@
 /*=============================================================================
 
-    Copyright 2009 - 2013 Nikolay Ognyanov
+    Copyright 2009 - 2014 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 =============================================================================*/
 /*=============================================================================
 
-            XQGrammar : An NTLR 3 XQuery Grammar, Version 3.0.0
+            XQGrammar : An ANTLR 3 XQuery Grammar, Version 3.0.2
 
             Supported W3C grammars:
 
             1. XQuery 3.0
-               Candidate Recommendation / 08 January 2013
+               Recommendation / 08 April 2014
                http://www.w3.org/TR/xquery-30/
 
             2. XQuery Update Facility 1.0
@@ -36,8 +36,6 @@
             4. XQuery Scripting Extension 1.0
                Working Draft / 8 April 2010
                http://www.w3.org/TR/xquery-sx-10/
-
-
 
 =============================================================================*/
 
@@ -68,7 +66,7 @@ tokens {
 @header {
 /*=============================================================================
 
-    Copyright 2009 - 2013 Nikolay Ognyanov
+    Copyright 2009 - 2014 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -90,7 +88,7 @@ package xqgrammar;
 @lexer::header {
 /*=============================================================================
 
-    Copyright 2009, 2010 Nikolay Ognyanov
+    Copyright 2009 - 2014 Nikolay Ognyanov
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
